@@ -28,6 +28,9 @@ var murVertical;
 var murVertical1;
 
 var bloc_allowed = true;
+var bloc_present = false;
+
+var boost_height = 225;
 
 var bloc_rebond;
 var cd_bloc_rebond = 0;
@@ -44,6 +47,15 @@ var miels;
 var start = true;
 
 var debugText;
+var debugText2;
+
+var tab_notes;
+var timer = 0;
+
+var tempo = 180;
+var indic_notes;
+
+var children_notes;
 
 class scene1 extends Phaser.Scene{
     
@@ -104,11 +116,44 @@ class scene1 extends Phaser.Scene{
             gamepad = pad;
         }, this);
         
-        bloc_rebond = murs.create(player.x, player.y - 50, 'bloc');
+        tab_notes = [[4*tempo,150],[5*tempo,1050],[6*tempo,450],[7*tempo,750]];
+        
+        indic_notes = this.add.group();
+        
+        debugText2 = this.add.text(1000, 16,"debug", {
+            fontSize: '18px',
+            padding: { x: 10, y: 5 },
+            backgroundColor: '#000000',
+            fill: '#ffffff'
+        });
+        
     }
     
     update ()
     {
+        timer++;
+        
+        for (var couple of tab_notes)
+        {
+            if (couple[0] - timer == 3*tempo)
+            {
+                var indic_note = indic_notes.create(couple[1],750,'dude');
+            }
+            debugText2.setText(couple[0] + couple[1]);
+        }
+        
+        children_notes = indic_notes.getChildren();
+        
+        for (var indic_note of children_notes)
+        {
+            indic_note.y--;
+            if (indic_note.y < 550){indic_note.destroy();}            
+        }
+        
+        /*this.indic_notes.children.each(function(indic) {
+            indic.y += 1;
+            }, this);*/
+        
         this.input.gamepad.once('connected', function (pad) {});
         
         hpText.setText('Hp = ' + hp_player);
@@ -134,22 +179,27 @@ class scene1 extends Phaser.Scene{
             }
         }
         
-        if (cd_bloc_rebond == 0)
+        if (cd_bloc_rebond == 0 && bloc_present)
         {
-            bloc_rebond.destroy;
+            bloc_rebond.destroy();
+            boost_height = 225;
             player.setBounce(0.845);
+            bloc_present = false;
         }
         else
         {
             cd_bloc_rebond--;
         }
         
-        if (cursors.down.isDown && bloc_allowed)
+        if (cursors.down.isDown && bloc_allowed && !bloc_present)
         {
             bloc_allowed = false;
-            bloc_rebond = murs.create(player.x, player.y - 100, 'bloc');
+            bloc_present = true;
+            bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
+            boost_height = player.y;
             cd_bloc_rebond = 180;
             player.setBounce(1);
+            player.setVelocityY(-player.body.velocity.y);
         }
         
         if (!cursors.down.isDown)
@@ -215,11 +265,11 @@ class scene1 extends Phaser.Scene{
             //player.setVelocityY(0);
         }
         
-        if (player.x >= 1280 -50){
+        /*if (player.x >= 1280 -50){
             y_0 = player.y;
             start = false;
             this.scene.start("scene2");
-        }
+        }*/
         
         vX0 = vX1;
         vX1 = player.body.velocity.x;
@@ -231,7 +281,13 @@ class scene1 extends Phaser.Scene{
             player.setVelocityY(1100);
         }
         
-        debugText.setText(  '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
+        if (player.y > 550)
+        {
+            player.setVelocityY(-3100);
+        }
+        
+        debugText.setText(  '\n timer : ' + 10*Math.round(timer/10) +
+                            '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
                             '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10));
