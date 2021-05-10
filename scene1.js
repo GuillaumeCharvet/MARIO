@@ -8,7 +8,7 @@ var gold_player = 6;
 var x_0 = 600;
 var y_0 = 200;
 var angle = 0;
-var velocity = 1000;
+var velocity = 1500;
 
 var vX0;
 var vY0;
@@ -27,7 +27,8 @@ var brics;
 var murVertical;
 var murVertical1;
 
-var bloc_allowed = true;
+var bloc_down_allowed = true;
+var bloc_up_allowed = true;
 var bloc_present = false;
 
 var boost_height = 225;
@@ -139,7 +140,7 @@ class scene1 extends Phaser.Scene{
             {
                 var indic_note = indic_notes.create(couple[1],750,'dude');
             }
-            debugText2.setText(couple[0] + couple[1]);
+            debugText2.setText("test " + couple[0] + " " + couple[1]);
         }
         
         children_notes = indic_notes.getChildren();
@@ -191,9 +192,9 @@ class scene1 extends Phaser.Scene{
             cd_bloc_rebond--;
         }
         
-        if (cursors.down.isDown && bloc_allowed && !bloc_present)
+        if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
         {
-            bloc_allowed = false;
+            bloc_down_allowed = false;
             bloc_present = true;
             bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
             boost_height = player.y;
@@ -204,9 +205,24 @@ class scene1 extends Phaser.Scene{
         
         if (!cursors.down.isDown)
         {
-            bloc_allowed = true;
+            bloc_down_allowed = true;
         }
         
+        if (cursors.up.isDown && bloc_up_allowed && !bloc_present)
+        {
+            bloc_up_allowed = false;
+            bloc_present = true;
+            bloc_rebond = murs.create(player.x, player.y + 80, 'bloc');
+            //boost_height = player.y;
+            cd_bloc_rebond = 180;
+            //player.setBounce(1);
+            player.setVelocityY(-player.body.velocity.y);
+        }
+        
+        if (!cursors.up.isDown)
+        {
+            bloc_up_allowed = true;
+        }
         
         if(!gamepad_used){
         if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
