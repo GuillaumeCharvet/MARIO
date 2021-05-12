@@ -8,7 +8,7 @@ var gold_player = 6;
 var x_0 = 600;
 var y_0 = 200;
 var angle = 0;
-var velocity = 1500;
+var velocity = 2000;
 
 var vX0;
 var vY0;
@@ -49,14 +49,23 @@ var start = true;
 
 var debugText;
 var debugText2;
+var debugText3;
+
+var score = 0;
+
+var text = "";
+var tab_timer = [];
+var text2 = "";
 
 var tab_notes;
 var timer = 0;
 
-var tempo = 180;
+var tempo = 26;
 var indic_notes;
 
 var children_notes;
+
+var note;
 
 class scene1 extends Phaser.Scene{
     
@@ -76,6 +85,8 @@ class scene1 extends Phaser.Scene{
         this.load.image('miel', 'assets/images/miel_pot.png');
         this.load.image('gold', 'assets/images/star.png');
         this.load.image('cle', 'assets/images/cle.jpg');
+        
+        this.load.audio('note', 'assets/audio/Bzz0.m4a');
     }
     
     create ()
@@ -100,6 +111,10 @@ class scene1 extends Phaser.Scene{
         
         player.setBounce(0.845);
         
+        note = this.sound.add("note", { loop: false });
+        
+        //player.setBodySize(50,50,true);
+        
         hpText = this.add.text(10, 20, 'Hp = ' + hp_player, style).setScrollFactor(0);
         goldText = this.add.text(10, 80, 'Gold = ' + gold_player, style).setScrollFactor(0);
         debugText = this.add.text(16, 16,"debug", {
@@ -109,7 +124,7 @@ class scene1 extends Phaser.Scene{
             fill: '#ffffff'
         });
         
-        this.physics.add.collider(player, murs);
+        this.physics.add.collider(player, murs, ground, null, this);
         
         //this.cameras.main.startFollow(player, true, 0.5, 0.5);
         
@@ -117,11 +132,18 @@ class scene1 extends Phaser.Scene{
             gamepad = pad;
         }, this);
         
-        tab_notes = [[4*tempo,150],[5*tempo,1050],[6*tempo,450],[7*tempo,750]];
+        tab_notes = [[4,0,true],[5,3,true],[6,1,true],[7,2,true],[8,3,true],[9,3,true],[12,3,true],[12.25,3,true],[12.5,3,true],[12.75,3,true]];
         
         indic_notes = this.add.group();
         
-        debugText2 = this.add.text(1000, 16,"debug", {
+        debugText2 = this.add.text(0, 450,"debug", {
+            fontSize: '18px',
+            padding: { x: 10, y: 5 },
+            backgroundColor: '#000000',
+            fill: '#ffffff'
+        });
+        
+        debugText3 = this.add.text(0, 500,"debug", {
             fontSize: '18px',
             padding: { x: 10, y: 5 },
             backgroundColor: '#000000',
@@ -134,21 +156,46 @@ class scene1 extends Phaser.Scene{
     {
         timer++;
         
+        text = "";
+        
         for (var couple of tab_notes)
         {
-            if (couple[0] - timer == 3*tempo)
+            if (couple[2] && couple[0]*tempo - timer <= 3*tempo)
             {
-                var indic_note = indic_notes.create(couple[1],750,'dude');
+                couple[2] = false;
+                var indic_note = indic_notes.create(couple[1]*300+150,750,'bloc').setScale(0.5,0.25);
+                indic_note.setTint(0xff0000);
+                tab_notes.shift();
             }
-            debugText2.setText("test " + couple[0] + " " + couple[1]);
+            text += couple[1] + ",";
         }
+        
+        if (player.body.touchingdown)
+        {
+            //tab_timer.push(timer);
+            text2 += timer + ",";
+        }
+        
+        debugText2.setText("partoche à venir : " + text);
+        
+        debugText3.setText("touches du joueur : " + text2);
         
         children_notes = indic_notes.getChildren();
         
         for (var indic_note of children_notes)
         {
-            indic_note.y--;
-            if (indic_note.y < 550){indic_note.destroy();}            
+            indic_note.y -= 3;
+            if (indic_note.y < 630)
+            {
+                if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 500)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                {
+                    score++;
+                    game.sound.volume = 1;
+                    game.sound.setRate(4);
+                    note.play();
+                }
+                indic_note.destroy();
+            }
         }
         
         /*this.indic_notes.children.each(function(indic) {
@@ -306,43 +353,16 @@ class scene1 extends Phaser.Scene{
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
-                            '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10));
+                            '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
+                            '\n score : ' + score);
         
     }
 
 }
 
-function collectGold (player, gold)
+
+
+function ground (player, murs)
 {
-    gold.disableBody(true, true);
-
-    //  Add and update the score
-    gold_player += 1;
-
-    if (gold_player == 10)
-    {
-        endText = this.add.text(600, 350, 'Vous êtes riche !', style).setScrollFactor(0);
-        this.physics.pause();
-        return;
-    }
-}
-
-function collideBric (player, bric)
-{
-    if (power_up_collected)
-    {
-        bric.disableBody(true, true);
-    }
-}
-
-function collectPowerUp (player, power_up)
-{
-    power_up_collected = true;
-    power_up.disableBody(true, true);
-}
-
-function collectMiel (player, miel)
-{
-    hp_player += 1;
-    miel.disableBody(true, true);
+    text2 += timer + ",";
 }
