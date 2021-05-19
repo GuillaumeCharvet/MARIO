@@ -47,6 +47,7 @@ var miels;
 
 var start = true;
 
+var debugText0;
 var debugText;
 var debugText2;
 var debugText3;
@@ -54,12 +55,15 @@ var debugText3;
 var score = 0;
 
 var text = "";
+var text0 = "";
 var tab_timer = [];
 var text2 = "";
 
-var tab_notes;
+var tab_notes_entree;
+var tab_notes_sortie;
 var timer = 0;
 
+var tonalite = 1;
 var tempo = 26;
 var indic_notes;
 
@@ -91,7 +95,7 @@ class scene1 extends Phaser.Scene{
     
     create ()
     {        
-        this.physics.world.setBounds(0, 0, config.width, config.height); 
+        this.physics.world.setBounds(0, 0, config.width, config.height);
         
         bg = this.add.tileSprite(640, 360, 1280, 720, 'bg');
         
@@ -132,7 +136,9 @@ class scene1 extends Phaser.Scene{
             gamepad = pad;
         }, this);
         
-        tab_notes = [[4,0,true],[5,3,true],[6,1,true],[7,2,true],[8,3,true],[9,3,true],[12,3,true],[12.25,3,true],[12.5,3,true],[12.75,3,true]];
+        //tab_notes_entree = [[4,0,0],[5,3,4],[6,1,7],[7,2,4],[8,3,0],[9,3,0],[12,3,7],[12.25,3,7],[12.5,3,7],[12.75,3,0]];
+        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[9,2,7],[10,2,7],[11,2,7],[12,3,9],[13,2,5],[14,3,11],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,4],[22,0,4],[23,0,4],[24,0,4],[25,1,2],[26,1,2],[27,1,2],[28,1,2],[29,2,0],[30,1,2],[31,2,0],[32,0,-1],[33,1,2],[34,3,7]];
+        tab_notes_sortie = [];
         
         indic_notes = this.add.group();
         
@@ -150,24 +156,46 @@ class scene1 extends Phaser.Scene{
             fill: '#ffffff'
         });
         
+        debugText0 = this.add.text(0, 400,"debug", {
+            fontSize: '18px',
+            padding: { x: 10, y: 5 },
+            backgroundColor: '#000000',
+            fill: '#ffffff'
+        });
+        
     }
     
     update ()
     {
         timer++;
         
-        text = "";
-        
-        for (var couple of tab_notes)
+        /*if (timer%60 == 0)
         {
-            if (couple[2] && couple[0]*tempo - timer <= 3*tempo)
+            tonalite *= Math.pow(2,1/12);
+            game.sound.setRate(tonalite);
+            note.play();
+        }*/
+        
+        text = "";
+        text0 = "";
+        
+        for (var couple of tab_notes_entree)
+        {
+            if (couple[0]*tempo - timer <= 3*tempo)
             {
-                couple[2] = false;
+                //couple[2] = false;
                 var indic_note = indic_notes.create(couple[1]*300+150,750,'bloc').setScale(0.5,0.25);
                 indic_note.setTint(0xff0000);
-                tab_notes.shift();
+                tab_notes_sortie.push(tab_notes_entree[0]);
+                tab_notes_entree.shift();
             }
             text += couple[1] + ",";
+            //text0 += tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
+        }
+        
+        for (var couple of tab_notes_sortie)
+        {
+            text0 += couple[1] + ","; //tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
         }
         
         if (player.body.touchingdown)
@@ -180,6 +208,8 @@ class scene1 extends Phaser.Scene{
         
         debugText3.setText("touches du joueur : " + text2);
         
+        debugText0.setText("partoche à arriver : " + text0);
+        
         children_notes = indic_notes.getChildren();
         
         for (var indic_note of children_notes)
@@ -187,14 +217,16 @@ class scene1 extends Phaser.Scene{
             indic_note.y -= 3;
             if (indic_note.y < 630)
             {
-                if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 500)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 450)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
                     score++;
                     game.sound.volume = 1;
-                    game.sound.setRate(4);
+                    tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
+                    game.sound.setRate(tonalite);
                     note.play();
                 }
                 indic_note.destroy();
+                tab_notes_sortie.shift();
             }
         }
         
