@@ -249,6 +249,8 @@ class scene1 extends Phaser.Scene{
                 note.play();
                 indic_note.destroy();
                 tab_notes_sortie.shift();
+                this.physics.pause();
+                player.y = 550;
             }
         }
         
