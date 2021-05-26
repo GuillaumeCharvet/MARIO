@@ -141,8 +141,8 @@ class scene1 extends Phaser.Scene{
         }, this);
         
         //tab_notes_entree = [[4,0,0],[5,3,4],[6,1,7],[7,2,4],[8,3,0],[9,3,0],[12,3,7],[12.25,3,7],[12.5,3,7],[12.75,3,0]];
-        //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[9,2,7],[10,2,7],[11,2,7],[12,3,9],[13,2,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,1,4],[26,1,4],[27,1,4],[28,1,4],[29,2,2],[30,1,4],[31,2,2],[32,0,0],[33,1,4],[34,3,7],[36,1,7],[37,0,5],[38,0,5],[39,0,5],[40,0,5],[41,1,4],[42,1,4],[43,1,4],[44,1,4],[45,2,2],[46,1,4],[47,2,2],[48,0,0]];
-        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[8.5,2,6],[9,2,7],[9.5,2,6],[10,2,7]];
+        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[9,2,7],[10,2,7],[11,2,7],[12,3,9],[13,2,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,1,4],[26,1,4],[27,1,4],[28,1,4],[29,2,2],[30,1,4],[31,2,2],[32,0,0],[33,1,4],[34,3,7],[36,1,7],[37,0,5],[38,0,5],[39,0,5],[40,0,5],[41,1,4],[42,1,4],[43,1,4],[44,1,4],[45,2,2],[46,1,4],[47,2,2],[48,0,0]];
+        //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[8.5,2,6],[9,2,7],[9.5,2,6],[10,2,7]];
         tab_notes_sortie = [];
         
         indic_notes = this.add.group();
@@ -181,7 +181,7 @@ class scene1 extends Phaser.Scene{
     {
         if (tab_notes_entree.length == 0)
         {
-            //setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??");},2000);
+            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??");},2000);
         }
         
         timer++;
@@ -231,25 +231,22 @@ class scene1 extends Phaser.Scene{
         
         for (var indic_note of children_notes)
         {
-            indic_note.y -= 0.4 + (750 - indic_note.y)/60;
-            //indic_note.y -= 3;
+            //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
+            indic_note.y -= 3;
             if (indic_note.y < 630)
             {
                 if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 450)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
                     score++;
                     game.sound.volume = 1;
-                    tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
-                    game.sound.setRate(tonalite);
-                    note.play();
                 }
                 else
                 {
                     game.sound.volume = 0.2;
-                    tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
-                    game.sound.setRate(tonalite);
-                    note.play();
                 }
+                tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
+                game.sound.setRate(tonalite);
+                note.play();
                 indic_note.destroy();
                 tab_notes_sortie.shift();
             }
