@@ -15,6 +15,7 @@ var y_top = 150;
 var y_mid = 350;
 var timer2 = 20;
 var division = 1;
+var tab_division = [[1,150],[1,150]];
 
 var vX0;
 var vY0;
@@ -127,10 +128,6 @@ class scene1 extends Phaser.Scene{
         
         note = this.sound.add("note", { loop: false });
         
-        //player.setBodySize(50,50,true);
-        
-        hpText = this.add.text(10, 20, 'Hp = ' + hp_player, style).setScrollFactor(0);
-        goldText = this.add.text(10, 80, 'Gold = ' + gold_player, style).setScrollFactor(0);
         debugText = this.add.text(16, 16,"debug", {
             fontSize: '18px',
             padding: { x: 10, y: 5 },
@@ -192,6 +189,13 @@ class scene1 extends Phaser.Scene{
         
         timer++;
         
+        timer2 = (timer2+1)%tempo;
+
+        if (!timer2){
+            tab_division.shift();
+            tab_division.push([1,150]);
+        }
+
         /*if (timer%60 == 0)
         {
             tonalite *= Math.pow(2,1/12);
@@ -266,9 +270,6 @@ class scene1 extends Phaser.Scene{
         
         this.input.gamepad.once('connected', function (pad) {});
         
-        hpText.setText('Hp = ' + hp_player);
-        goldText.setText('Gold = ' + gold_player);
-        
         if (gamepad)
         {
             if (Math.pow(gamepad.leftStick.x,2)+Math.pow(gamepad.leftStick.y,2)>0.5)
@@ -303,8 +304,17 @@ class scene1 extends Phaser.Scene{
         
         if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
         {
-            /*division = 4;
-            y_sol = 350;*/
+            if (timer2)
+            {
+                tab_division[1][0] = 4;
+                tab_division[1][1] = 350;
+            }
+            else
+            {
+                tab_division[0][0] = 4;
+                tab_division[1][1] = 350;
+            }
+
             bloc_down_allowed = false;
             bloc_present = true;
             bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
@@ -402,9 +412,10 @@ class scene1 extends Phaser.Scene{
         vX1 = player.body.velocity.x;
         vY0 = vY1;
         vY1 = player.body.velocity.y;
-        
-        timer2 = (timer2+1)%tempo;
-        player.y = calcul_hauteur(timer2,0,tempo/division);
+
+        y_top = tab_division[0][1];
+        player.y = calcul_hauteur(timer2,0,tempo/tab_division[0][0]);
+
         /*
         if (player.y < 225)
         {
@@ -429,7 +440,7 @@ class scene1 extends Phaser.Scene{
 
 function calcul_hauteur(t,t0,delta)
 {
-    return 4*(y_sol-y_top)*(t-t0)*((t-t0)/delta-1)/delta+y_sol;
+    return 4*(y_sol-y_top)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
 }
 
 function ground (player, murs)
