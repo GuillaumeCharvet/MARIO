@@ -10,6 +10,12 @@ var y_0 = 200;
 var angle = 0;
 var velocity = 2000;
 
+var y_sol = 550;
+var y_top = 150;
+var y_mid = 350;
+var timer2 = 20;
+var division = 1;
+
 var vX0;
 var vY0;
 var vX1;
@@ -64,7 +70,7 @@ var tab_notes_sortie;
 var timer = 0;
 
 var tonalite = 1;
-var tempo = 26;
+var tempo = 30;
 var indic_notes;
 
 var children_notes;
@@ -249,8 +255,8 @@ class scene1 extends Phaser.Scene{
                 note.play();
                 indic_note.destroy();
                 tab_notes_sortie.shift();
-                this.physics.pause();
-                player.y = 550;
+                //this.physics.pause();
+                //player.y = 550;
             }
         }
         
@@ -297,13 +303,15 @@ class scene1 extends Phaser.Scene{
         
         if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
         {
+            /*division = 4;
+            y_sol = 350;*/
             bloc_down_allowed = false;
             bloc_present = true;
             bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
             boost_height = player.y;
             cd_bloc_rebond = 180;
             player.setBounce(1);
-            player.setVelocityY(-player.body.velocity.y);
+            //player.setVelocityY(-player.body.velocity.y);
         }
         
         if (!cursors.down.isDown)
@@ -319,7 +327,7 @@ class scene1 extends Phaser.Scene{
             //boost_height = player.y;
             cd_bloc_rebond = 180;
             //player.setBounce(1);
-            player.setVelocityY(-player.body.velocity.y);
+            //player.setVelocityY(-player.body.velocity.y);
         }
         
         if (!cursors.up.isDown)
@@ -395,6 +403,9 @@ class scene1 extends Phaser.Scene{
         vY0 = vY1;
         vY1 = player.body.velocity.y;
         
+        timer2 = (timer2+1)%tempo;
+        player.y = calcul_hauteur(timer2,0,tempo/division);
+        /*
         if (player.y < 225)
         {
             player.setVelocityY(1100);
@@ -403,7 +414,7 @@ class scene1 extends Phaser.Scene{
         if (player.y > 550)
         {
             player.setVelocityY(-3100);
-        }
+        }*/
         
         debugText.setText(  '\n timer : ' + 10*Math.round(timer/10) +
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
@@ -416,7 +427,10 @@ class scene1 extends Phaser.Scene{
 
 }
 
-
+function calcul_hauteur(t,t0,delta)
+{
+    return 4*(y_sol-y_top)*(t-t0)*((t-t0)/delta-1)/delta+y_sol;
+}
 
 function ground (player, murs)
 {
