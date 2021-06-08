@@ -4,14 +4,14 @@ var gamepad_used;
 
 var graphics;
 
-var radius0 = 6;
-var radius1 = 20;
-var radius2 = 30;
+var radius0 = 12;
+var radius1 = 30;
+var radius2 = 40;
 var radius3 = 6;
 
-var decalage = 54;//69;
-var yH = 190;
-var yB = 200;
+var decalage = 69;
+var yH = 140;
+var yB = 145;
 
 var traceX = [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000];
 var traceY = [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000];
@@ -22,14 +22,18 @@ var gold_player = 6;
 var x_init = 600;
 var y_init = 200;
 var angle = 0;
-var velocity = 2000;
+var velocity = 1200;
 
-var y_sol = 580;
-var y_top = 150;
-var y_mid = 350;
+var y_sol = 280;
+var y_mid = 180;
+var y_top0 = 50;
+var y_top;
 var timer2 = 29;
 var division = 1;
-var tab_division = [[1,150],[1,150]];
+var tab_division = [[1,y_top0],[1,y_top0]];
+
+var largeur_note;
+var limite_gauche;
 
 var vX0;
 var vY0;
@@ -92,6 +96,8 @@ var children_notes;
 
 var note;
 
+var nombre_notes_total;
+
 var textFinal;
 
 class scene1 extends Phaser.Scene{
@@ -122,11 +128,17 @@ class scene1 extends Phaser.Scene{
     {     
         graphics = this.add.graphics();
         
-        this.physics.world.setBounds(0, 0, config.width, config.height);
+        this.physics.world.setBounds(config.height/2, 0, config.width-config.height/2, config.height);
         
-        bg = this.add.tileSprite(640, 360, 1280, 720, 'bg');
+        bg = this.add.tileSprite(config.height/2+448, 224, 896, 448, 'bg');
         bg.setDepth(-1);
-        
+
+        // largeur d'une colonne -> on soustrait une demie hauteur à la largeur totale puis on divide par le nombre de colonnes
+        largeur_note = (config.width-config.height/2)/5;
+        limite_gauche = config.height/2+0.5*largeur_note;
+
+        velocity = 1200*(30/tempo);
+        /*
         murs = this.physics.add.staticGroup();
         murVertical = this.physics.add.staticGroup();
         
@@ -134,7 +146,7 @@ class scene1 extends Phaser.Scene{
         murVertical1 = murVertical.create(0-16*720/400, 360, 'bloc').setScale(720/400).refreshBody();
         murVertical1.angle += 90;
         murs.create(1280, 720, 'bloc').setScale(2*1280/400).refreshBody();
-        
+        */
         cursors = this.input.keyboard.addKeys({ 'up': Phaser.Input.Keyboard.KeyCodes.Z, 'left': Phaser.Input.Keyboard.KeyCodes.Q, 'right': Phaser.Input.Keyboard.KeyCodes.D, 'down': Phaser.Input.Keyboard.KeyCodes.S,'gas': Phaser.Input.Keyboard.KeyCodes.SPACE, 'restart': Phaser.Input.Keyboard.KeyCodes.R, 'abandon': Phaser.Input.Keyboard.KeyCodes.A});
 
         player = this.physics.add.sprite(x_init, y_init, 'dude');
@@ -142,7 +154,6 @@ class scene1 extends Phaser.Scene{
         player.setCollideWorldBounds(true);
         
         player.setBounce(0.845);
-        
         player.setVisible(false);
         
         note = this.sound.add("note", { loop: false });
@@ -150,11 +161,10 @@ class scene1 extends Phaser.Scene{
         debugText = this.add.text(16, 16,"debug", {
             fontSize: '18px',
             padding: { x: 10, y: 5 },
-            backgroundColor: '#000000',
             fill: '#ffffff'
         });
         
-        this.physics.add.collider(player, murs, ground, null, this);
+        /*this.physics.add.collider(player, murs, ground, null, this);*/
         
         //this.cameras.main.startFollow(player, true, 0.5, 0.5);
         
@@ -163,12 +173,14 @@ class scene1 extends Phaser.Scene{
         }, this);
         
         //tab_notes_entree = [[4,0,0],[5,3,4],[6,1,7],[7,2,4],[8,3,0],[9,3,0],[12,3,7],[12.25,3,7],[12.5,3,7],[12.75,3,0]];
-        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[9,2,7],[10,2,7],[11,2,7],[12,3,9],[13,2,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,1,4],[26,1,4],[27,1,4],[28,1,4],[29,2,2],[30,1,4],[31,2,2],[32,0,0],[33,1,4],[34,3,7],[36,1,7],[37,0,5],[38,0,5],[39,0,5],[40,0,5],[41,1,4],[42,1,4],[43,1,4],[44,1,4],[45,2,2],[46,1,4],[47,2,2],[48,0,0]];
+        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,4,7],[9,4,7],[10,4,7],[11,4,7],[12,1,9],[13,0,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,2,4],[26,2,4],[27,2,4],[28,2,4],[29,3,2],[30,2,4],[31,3,2],[32,0,0],[33,1,4],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
         //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[8.5,2,6],[9,2,7],[9.5,2,6],[10,2,7]];
         tab_notes_sortie = [];
         
+        nombre_notes_total = tab_notes_entree.length;
+
         indic_notes = this.add.group();
-        
+        /*
         debugText2 = this.add.text(0, 450,"debug", {
             fontSize: '18px',
             padding: { x: 10, y: 5 },
@@ -189,11 +201,10 @@ class scene1 extends Phaser.Scene{
             backgroundColor: '#000000',
             fill: '#ffffff'
         });
-        
-        textFinal = this.add.text(100, 300,"", {
-            fontSize: '80px',
+        */
+        textFinal = this.add.text(100, config.height/2-100,"", {
+            fontSize: '50px',
             padding: { x: 10, y: 5 },
-            backgroundColor: '#000000',
             fill: '#ffffff'
         });
         
@@ -203,16 +214,17 @@ class scene1 extends Phaser.Scene{
     {
         if (tab_notes_entree.length == 0)
         {
-            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??");},2000);
+            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},2000);
         }
         
         timer++;
         
         timer2 = (timer2+1)%tempo;
 
-        if (!timer2){
+        if (timer2 == 0){
+            console.log(tab_division[0][0],tab_division[0][1],tab_division[1][0],tab_division[1][1])
             tab_division.shift();
-            tab_division.push([1,150]);
+            tab_division.push([1,y_top0]);            
         }
 
         /*if (timer%60 == 0)
@@ -221,50 +233,50 @@ class scene1 extends Phaser.Scene{
             game.sound.setRate(tonalite);
             note.play();
         }*/
-        
+        /*
         text = "";
         text0 = "";
-        
+        */
         for (var couple of tab_notes_entree)
         {
             if (couple[0]*tempo - timer <= 3*tempo)
             {
                 //couple[2] = false;
-                var indic_note = indic_notes.create(couple[1]*300+150,750,'bloc').setScale(0.5,0.25);
+                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,450,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 indic_note.setTint(0xff0000);
                 tab_notes_sortie.push(tab_notes_entree[0]);
                 tab_notes_entree.shift();
             }
-            text += couple[1] + ",";
+            /*text += couple[1] + ",";*/
             //text0 += tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
         }
-        
+        /*
         for (var couple of tab_notes_sortie)
         {
             text0 += couple[1] + ","; //tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
-        }
+        }*/
         
         /*if (player.body.touchingdown && player.y > 450)
         {
             //tab_timer.push(timer);
             text2 += timer + ",";
         }*/
-        
+        /*
         debugText2.setText("partoche à venir : " + text);
         
         debugText3.setText("touches du joueur : " + text2);
         
         debugText0.setText("partoche à arriver : " + text0);
-        
+        */
         children_notes = indic_notes.getChildren();
         
         for (var indic_note of children_notes)
         {
             //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
             indic_note.y -= 1;
-            if (indic_note.y < 630)
+            if (indic_note.y < 330)
             {
-                if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 450)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 150)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
                     score++;
                     game.sound.volume = 1;
@@ -311,7 +323,7 @@ class scene1 extends Phaser.Scene{
         
         if (cd_bloc_rebond == 0 && bloc_present)
         {
-            bloc_rebond.destroy();
+            //bloc_rebond.destroy();
             boost_height = 225;
             player.setBounce(0.845);
             bloc_present = false;
@@ -323,20 +335,20 @@ class scene1 extends Phaser.Scene{
         
         if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
         {
-            if (timer2)
+            if (timer2 == 0)
             {
-                tab_division[1][0] = 4;
-                tab_division[1][1] = 350;
+                tab_division[0][0] = 4;
+                tab_division[0][1] = y_mid;
             }
             else
             {
-                tab_division[0][0] = 4;
-                tab_division[1][1] = 350;
+                tab_division[1][0] = 4;
+                tab_division[1][1] = y_mid;
             }
 
             bloc_down_allowed = false;
             bloc_present = true;
-            bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
+            //bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
             boost_height = player.y;
             cd_bloc_rebond = 180;
             player.setBounce(1);
@@ -433,7 +445,11 @@ class scene1 extends Phaser.Scene{
         vY1 = player.body.velocity.y;
 
         y_top = tab_division[0][1];
-        player.y = calcul_hauteur(timer2,0,tempo/tab_division[0][0]);
+        player.y = calcul_hauteur(timer2,0,tempo/tab_division[0][0],tab_division[0][1]);
+        if (tab_division[0][0]==4)
+        {
+            console.log(player.y);
+        }
 
         /*
         if (player.y < 225)
@@ -458,21 +474,20 @@ class scene1 extends Phaser.Scene{
         }*/
         
         draw_baton(player.x,player.y,1);
-        
-        debugText.setText(  '\n timer : ' + 10*Math.round(timer/10) +
+
+        debugText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
                             '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
-                            '\n score : ' + score);
-        
+                            '\n*/ 'score : ' + score);
     }
 
 }
 
-function calcul_hauteur(t,t0,delta)
+function calcul_hauteur(t,t0,delta,ymax)
 {
-    return 4*(y_sol-y_top)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+    return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
 }
 
 function draw_baton(x,y,alpha)
