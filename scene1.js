@@ -24,10 +24,10 @@ var y_init = 200;
 var angle = 0;
 var velocity = 2000;
 
-var y_sol = 550;
+var y_sol = 580;
 var y_top = 150;
 var y_mid = 350;
-var timer2 = 25;
+var timer2 = 29;
 var division = 1;
 var tab_division = [[1,150],[1,150]];
 
