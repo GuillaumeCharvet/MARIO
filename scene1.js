@@ -27,7 +27,7 @@ var velocity = 2000;
 var y_sol = 550;
 var y_top = 150;
 var y_mid = 350;
-var timer2 = 20;
+var timer2 = 25;
 var division = 1;
 var tab_division = [[1,150],[1,150]];
 
@@ -470,11 +470,11 @@ class scene1 extends Phaser.Scene{
 
 }
 
-<<<<<<< Updated upstream
 function calcul_hauteur(t,t0,delta)
 {
     return 4*(y_sol-y_top)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
-=======
+}
+
 function draw_baton(x,y,alpha)
 {
     let x0 = getX0(x,y);
@@ -510,7 +510,6 @@ function getX0(x,y)
 function getY0(x,y)
 {
     return (yH-yB)*(x-448)*(x-448)/(172*276)+yH + (y-200)/8;
->>>>>>> Stashed changes
 }
 
 function ground (player, murs)
