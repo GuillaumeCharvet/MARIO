@@ -1,12 +1,26 @@
 var gamepad;
 var gamepadA;
 var gamepad_used;
-    
+
+var graphics;
+
+var radius0 = 6;
+var radius1 = 20;
+var radius2 = 30;
+var radius3 = 6;
+
+var decalage = 54;//69;
+var yH = 190;
+var yB = 200;
+
+var traceX = [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000];
+var traceY = [-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000,-1000];
+
 var player;
 var hp_player = 1;
 var gold_player = 6;
-var x_0 = 600;
-var y_0 = 200;
+var x_init = 600;
+var y_init = 200;
 var angle = 0;
 var velocity = 2000;
 
@@ -93,7 +107,7 @@ class scene1 extends Phaser.Scene{
         this.load.image('dude', 'assets/images/dude.png');
         this.load.image('bloc', 'assets/images/platform.png');
         this.load.image('bric', 'assets/images/bric.png');
-        this.load.image('bg', 'assets/images/bg3.png');
+        this.load.image('bg', 'assets/images/bg.png');
         this.load.image('power_up', 'assets/images/power_up.png');
         this.load.image('miel', 'assets/images/miel_pot.png');
         this.load.image('gold', 'assets/images/star.png');
@@ -105,10 +119,13 @@ class scene1 extends Phaser.Scene{
     }
     
     create ()
-    {        
+    {     
+        graphics = this.add.graphics();
+        
         this.physics.world.setBounds(0, 0, config.width, config.height);
         
         bg = this.add.tileSprite(640, 360, 1280, 720, 'bg');
+        bg.setDepth(-1);
         
         murs = this.physics.add.staticGroup();
         murVertical = this.physics.add.staticGroup();
@@ -120,11 +137,13 @@ class scene1 extends Phaser.Scene{
         
         cursors = this.input.keyboard.addKeys({ 'up': Phaser.Input.Keyboard.KeyCodes.Z, 'left': Phaser.Input.Keyboard.KeyCodes.Q, 'right': Phaser.Input.Keyboard.KeyCodes.D, 'down': Phaser.Input.Keyboard.KeyCodes.S,'gas': Phaser.Input.Keyboard.KeyCodes.SPACE, 'restart': Phaser.Input.Keyboard.KeyCodes.R, 'abandon': Phaser.Input.Keyboard.KeyCodes.A});
 
-        player = this.physics.add.sprite(x_0, y_0, 'dude');
+        player = this.physics.add.sprite(x_init, y_init, 'dude');
         
         player.setCollideWorldBounds(true);
         
         player.setBounce(0.845);
+        
+        player.setVisible(false);
         
         note = this.sound.add("note", { loop: false });
         
@@ -242,7 +261,7 @@ class scene1 extends Phaser.Scene{
         for (var indic_note of children_notes)
         {
             //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
-            indic_note.y -= 3;
+            indic_note.y -= 1;
             if (indic_note.y < 630)
             {
                 if ( Math.abs(player.x - indic_note.x) <= 100 && player.y > 450)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
@@ -403,7 +422,7 @@ class scene1 extends Phaser.Scene{
         }
         
         /*if (player.x >= 1280 -50){
-            y_0 = player.y;
+            y_init = player.y;
             start = false;
             this.scene.start("scene2");
         }*/
@@ -427,6 +446,19 @@ class scene1 extends Phaser.Scene{
             player.setVelocityY(-3100);
         }*/
         
+        graphics.clear();
+        
+        /*traceX.push(player.x);
+        traceX.shift();
+        traceY.push(player.y);
+        traceY.shift();        
+        for (let i = 0; i < traceX.length; i++)
+        {
+            draw_baton(traceX[i],traceY[i],(i+1)/traceX.length*(i+1)/traceX.length);
+        }*/
+        
+        draw_baton(player.x,player.y,1);
+        
         debugText.setText(  '\n timer : ' + 10*Math.round(timer/10) +
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
@@ -438,9 +470,47 @@ class scene1 extends Phaser.Scene{
 
 }
 
+<<<<<<< Updated upstream
 function calcul_hauteur(t,t0,delta)
 {
     return 4*(y_sol-y_top)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+=======
+function draw_baton(x,y,alpha)
+{
+    let x0 = getX0(x,y);
+    let y0 = getY0(x,y);
+    
+    let distAB = Math.pow(Math.pow(x0-x,2)+Math.pow(y0-y,2),1/2);
+    
+    //Affichage de l'extremite eloignee
+    graphics.fillStyle(0x3A3023, alpha);
+    graphics.fillCircle(x0,y0,radius0);
+    
+    //Affichage de la baguette
+    let poly = new Phaser.Geom.Polygon();
+
+    poly.setTo([ new Phaser.Geom.Point(x-radius2*(y0-y)/distAB, y+radius2*(x0-x)/distAB), new Phaser.Geom.Point(x0-radius0*(y0-y)/distAB, y0+radius0*(x0-x)/distAB), new Phaser.Geom.Point(x0+radius0*(y0-y)/distAB, y0-radius0*(x0-x)/distAB), new Phaser.Geom.Point(x+radius2*(y0-y)/distAB, y-radius2*(x0-x)/distAB) ]);
+    graphics.fillStyle(0x3A3023, alpha);
+    graphics.fillPoints(poly.points, true);
+    
+    //Affichage de l'extremite proche
+    graphics.fillStyle(0x9B8A72, alpha);
+    graphics.fillCircle(x,y,radius2);
+    
+    //Affichage de l'extremite proche
+    graphics.fillStyle(0x3A3023, alpha);
+    graphics.fillCircle(x,y,radius3);
+}
+
+function getX0(x,y)
+{
+    return decalage*x/276+448*(1-decalage/276);
+}
+
+function getY0(x,y)
+{
+    return (yH-yB)*(x-448)*(x-448)/(172*276)+yH + (y-200)/8;
+>>>>>>> Stashed changes
 }
 
 function ground (player, murs)
