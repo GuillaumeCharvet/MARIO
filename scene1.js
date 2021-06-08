@@ -346,12 +346,12 @@ class scene1 extends Phaser.Scene{
                 tab_division[1][1] = y_mid;
             }
 
-            bloc_down_allowed = false;
-            bloc_present = true;
+            //bloc_down_allowed = false;
+            //bloc_present = true;
             //bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
-            boost_height = player.y;
-            cd_bloc_rebond = 180;
-            player.setBounce(1);
+            //boost_height = player.y;
+            //cd_bloc_rebond = 180;
+            //player.setBounce(1);
             //player.setVelocityY(-player.body.velocity.y);
         }
         
@@ -445,10 +445,10 @@ class scene1 extends Phaser.Scene{
         vY1 = player.body.velocity.y;
 
         y_top = tab_division[0][1];
-        player.y = calcul_hauteur(timer2,0,tempo/tab_division[0][0],tab_division[0][1]);
+        player.y = calcul_hauteur(timer2/tab_division[0][0],0,tempo/tab_division[0][0],tab_division[0][1]);
         if (tab_division[0][0]==4)
         {
-            console.log(player.y);
+            //console.log(player.y);
         }
 
         /*
