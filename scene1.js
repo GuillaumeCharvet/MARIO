@@ -89,8 +89,10 @@ var tab_notes_sortie;
 var timer = 0;
 
 var tonalite = 1;
-var tempo = 30;
+var tempo = 18;
 var indic_notes;
+
+var vY_indic_notes = 1;
 
 var children_notes;
 
@@ -242,7 +244,7 @@ class scene1 extends Phaser.Scene{
             if (couple[0]*tempo - timer <= 3*tempo)
             {
                 //couple[2] = false;
-                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,450,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
+                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,450+tempo+((450-330)%tempo),'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 indic_note.setTint(0xff0000);
                 tab_notes_sortie.push(tab_notes_entree[0]);
                 tab_notes_entree.shift();
@@ -273,7 +275,7 @@ class scene1 extends Phaser.Scene{
         for (var indic_note of children_notes)
         {
             //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
-            indic_note.y -= 1;
+            indic_note.y -= vY_indic_notes;
             if (indic_note.y < 330)
             {
                 if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 150)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
