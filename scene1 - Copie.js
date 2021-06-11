@@ -24,6 +24,14 @@ var y_init = 200;
 var angle = 0;
 var velocity = 1200;
 
+var y_sol = 280;
+var y_mid = 180;
+var y_top0 = 50;
+var y_top;
+var timer2 = 29;
+var division = 1;
+var tab_division = [[1,y_top0],[1,y_top0]];
+
 var largeur_note;
 var limite_gauche;
 
@@ -81,19 +89,8 @@ var tab_notes_sortie;
 var timer = 0;
 
 var tonalite = 1;
-var tempo = 36;
+var tempo = 18;
 var indic_notes;
-
-var y_sol = 280;
-var y_mid = 180;
-var y_top0 = 50;
-var y_top;
-var timer2 = 9;
-var division = 1;
-var tab_division = [[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0]];
-//var tab_tempo = [[0*tempo/4,1*tempo/4-1],[1*tempo/4,2*tempo/4-1],[2*tempo/4,3*tempo/4-1],[3*tempo/4,4*tempo/4-1]];
-var tab_tempo = [0*tempo/4,1*tempo/4,2*tempo/4,3*tempo/4];
-
 
 var vY_indic_notes = 1;
 
@@ -226,17 +223,10 @@ class scene1 extends Phaser.Scene{
         
         timer2 = (timer2+1)%tempo;
 
-        if ( tab_division[0]<=timer2<tab_division[1])
-        {
-            
-        }
-
         if (timer2 == 0){
-            //console.log(tab_division[0][0],tab_division[0][1],tab_division[1][0],tab_division[1][1])
-            for (let k = 0; k < 4; k++) {
-                tab_division.shift();
-                tab_division.push([1,y_top0]);
-            }      
+            console.log(tab_division[0][0],tab_division[0][1],tab_division[1][0],tab_division[1][1])
+            tab_division.shift();
+            tab_division.push([1,y_top0]);            
         }
 
         /*if (timer%60 == 0)
