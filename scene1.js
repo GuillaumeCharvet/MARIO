@@ -88,12 +88,14 @@ var y_sol = 280;
 var y_mid = 180;
 var y_top0 = 50;
 var y_top;
-var timer2 = 9;
+var timer2 =0;
 var division = 1;
-var tab_division = [[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0]];
+//var tab_division = [[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0]];
+var tab_division = [1,1,1,1,1,1,1,1];
 //var tab_tempo = [[0*tempo/4,1*tempo/4-1],[1*tempo/4,2*tempo/4-1],[2*tempo/4,3*tempo/4-1],[3*tempo/4,4*tempo/4-1]];
 var tab_tempo = [0*tempo/4,1*tempo/4,2*tempo/4,3*tempo/4];
-
+var quart_section = 0;
+var dernier_rebond;
 
 var vY_indic_notes = 1;
 
@@ -178,7 +180,7 @@ class scene1 extends Phaser.Scene{
         }, this);
         
         //tab_notes_entree = [[4,0,0],[5,3,4],[6,1,7],[7,2,4],[8,3,0],[9,3,0],[12,3,7],[12.25,3,7],[12.5,3,7],[12.75,3,0]];
-        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,4,7],[9,4,7],[10,4,7],[11,4,7],[12,1,9],[13,0,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,2,4],[26,2,4],[27,2,4],[28,2,4],[29,3,2],[30,2,4],[31,3,2],[32,0,0],[33,1,4],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
+        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,4,7],[8.25,4,7],[8.5,4,7],[8.75,4,7],[9,3,7],[9.25,3,7],[9.5,3,7],[9.75,3,7],[10,4,7],[11,4,7],[12,1,9],[13,0,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,2,4],[26,2,4],[27,2,4],[28,2,4],[29,3,2],[30,2,4],[31,3,2],[32,0,0],[33,1,4],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
         //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[8.5,2,6],[9,2,7],[9.5,2,6],[10,2,7]];
         tab_notes_sortie = [];
         
@@ -217,26 +219,31 @@ class scene1 extends Phaser.Scene{
     
     update ()
     {
+
+        console.log("timer2=",timer2);
+        console.log(tab_division[0],tab_division[1],tab_division[2],tab_division[3],tab_division[4],tab_division[5],tab_division[6],tab_division[7]);
+
         if (tab_notes_entree.length == 0)
         {
-            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},2000);
+            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},3000);
         }
         
         timer++;
         
         timer2 = (timer2+1)%tempo;
 
-        if ( tab_division[0]<=timer2<tab_division[1])
-        {
-            
-        }
+        dernier_rebond = tab_division[quart_section];
+
+        if(timer2<tab_tempo[1]){quart_section=0;}
+        else if(tab_tempo[1]<=timer2 && timer2<tab_tempo[2]){quart_section=1;}
+        else if(tab_tempo[2]<=timer2 && timer2<tab_tempo[3]){quart_section=2;}
+        else if(tab_tempo[3]<=timer2){quart_section=3;}
 
         if (timer2 == 0){
-            //console.log(tab_division[0][0],tab_division[0][1],tab_division[1][0],tab_division[1][1])
-            for (let k = 0; k < 4; k++) {
+            for (let k = 0; k < 4; k++){
                 tab_division.shift();
-                tab_division.push([1,y_top0]);
-            }      
+                tab_division.push(1);
+            }
         }
 
         /*if (timer%60 == 0)
@@ -349,13 +356,18 @@ class scene1 extends Phaser.Scene{
         {
             if (timer2 == 0)
             {
-                tab_division[0][0] = 4;
-                tab_division[0][1] = y_mid;
+                tab_division[0] = 2;
             }
             else
             {
-                tab_division[1][0] = 4;
-                tab_division[1][1] = y_mid;
+                if (dernier_rebond == 2 || dernier_rebond == 3)
+                {
+                    tab_division[quart_section] = 2;
+                }
+                else
+                {
+                    tab_division[quart_section] = 3;
+                }
             }
 
             //bloc_down_allowed = false;
@@ -457,11 +469,12 @@ class scene1 extends Phaser.Scene{
         vY1 = player.body.velocity.y;
 
         y_top = tab_division[0][1];
-        player.y = calcul_hauteur(timer2/tab_division[0][0],0,tempo/tab_division[0][0],tab_division[0][1]);
-        if (tab_division[0][0]==4)
+        player.y = calcul_hauteur(tab_division[quart_section],timer2,tab_tempo[quart_section]);
+        
+        /*if (tab_division[0][0]==4)
         {
-            //console.log(player.y);
-        }
+            console.log(player.y);
+        }*/
 
         /*
         if (player.y < 225)
@@ -497,9 +510,37 @@ class scene1 extends Phaser.Scene{
 
 }
 
-function calcul_hauteur(t,t0,delta,ymax)
+function calcul_hauteur(type,t,t0)
 {
-    return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+    let ymax;
+    let delta;
+    if(type==2)
+    {
+        ymax = y_mid;
+        if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
+        else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
+        return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+    }
+    //calcul_hauteur(timer2/tab_division[0][0],0,tempo/tab_division[0][0],tab_division[0][1]);
+    //calcul_hauteur(t,t0,delta,ymax)
+    //4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+    else if(type==1)
+    {
+        t0 = 0
+        ymax = y_top0;
+        /*if (quart_section==0){delta = tempo;}
+        else if (tab_tempo[quart_section]){delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}*/
+        delta = tempo;
+        return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+    }
+    else if(type==3)
+    {
+        ymax = player.y;
+        if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
+        else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
+        if (quart_section==3){return ymax * (t - tempo)/(timer2 - tempo);}
+        else {return ymax * (t - (tab_tempo[quart_section+1]-1))/(timer2 - (tab_tempo[quart_section+1]-1));}
+    }
 }
 
 function draw_baton(x,y,alpha)
