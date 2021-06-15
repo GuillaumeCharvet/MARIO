@@ -81,21 +81,25 @@ var tab_notes_sortie;
 var timer = 0;
 
 var tonalite = 1;
-var tempo = 36;
+var tempo = 144;
 var indic_notes;
 
 var y_sol = 280;
 var y_mid = 180;
 var y_top0 = 50;
 var y_top;
+
+var ymax_type3;
+var ymax_type3_can_change = true;
+
 var timer2 =0;
 var division = 1;
 //var tab_division = [[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0]];
 var tab_division = [1,1,1,1,1,1,1,1];
 //var tab_tempo = [[0*tempo/4,1*tempo/4-1],[1*tempo/4,2*tempo/4-1],[2*tempo/4,3*tempo/4-1],[3*tempo/4,4*tempo/4-1]];
-var tab_tempo = [0*tempo/4,1*tempo/4,2*tempo/4,3*tempo/4];
+var tab_tempo = [Math.floor(0*tempo/4),Math.floor(1*tempo/4),Math.floor(2*tempo/4),Math.floor(3*tempo/4)];
 var quart_section = 0;
-var dernier_rebond;
+var dernier_rebond = 1;
 
 var vY_indic_notes = 1;
 
@@ -219,67 +223,50 @@ class scene1 extends Phaser.Scene{
     
     update ()
     {
-
-        console.log("timer2=",timer2);
-        console.log(tab_division[0],tab_division[1],tab_division[2],tab_division[3],tab_division[4],tab_division[5],tab_division[6],tab_division[7]);
+        console.log("****************************");
+        //console.log("timer2=",timer2);
+        //console.log(tab_division[0],tab_division[1],tab_division[2],tab_division[3],tab_division[4],tab_division[5],tab_division[6],tab_division[7]);
 
         if (tab_notes_entree.length == 0)
         {
-            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},3000);
+            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},2*1000*tempo/60);
         }
         
         timer++;
-        
-        timer2 = (timer2+1)%tempo;
 
-        dernier_rebond = tab_division[quart_section];
+        //dernier_rebond = tab_division[quart_section];
+        if(timer2==tab_tempo[0]||timer2==tab_tempo[1]||timer2==tab_tempo[2]||timer2==tab_tempo[3]){dernier_rebond = tab_division[quart_section];ymax_type3_can_change=true;}
 
-        if(timer2<tab_tempo[1]){quart_section=0;}
-        else if(tab_tempo[1]<=timer2 && timer2<tab_tempo[2]){quart_section=1;}
-        else if(tab_tempo[2]<=timer2 && timer2<tab_tempo[3]){quart_section=2;}
-        else if(tab_tempo[3]<=timer2){quart_section=3;}
+        // chaque temps est décomposé en 4 sous-temps, on note dans lequel on se trouve
+        if(timer2==tab_tempo[0]){quart_section=0;console.log(quart_section);}
+        else if(timer2==tab_tempo[1]){quart_section=1;console.log(quart_section);}
+        else if(timer2==tab_tempo[2]){quart_section=2;console.log(quart_section);}
+        else if(timer2==tab_tempo[3]){quart_section=3;console.log(quart_section);}
 
-        if (timer2 == 0){
-            for (let k = 0; k < 4; k++){
+        // les données du temps précédent sont décalés au nouveau temps
+        if (timer2 == 0)
+        {
+            for (let k = 0; k < 4; k++)
+            {
                 tab_division.shift();
                 tab_division.push(1);
             }
         }
 
-        /*if (timer%60 == 0)
-        {
-            tonalite *= Math.pow(2,1/12);
-            game.sound.setRate(tonalite);
-            note.play();
-        }*/
-        /*
-        text = "";
-        text0 = "";
-        */
+        //console.log(tab_division[0],tab_division[1],tab_division[2],tab_division[3],tab_division[4]);
+
+        // on vérifie si les notes qui ne sont pas encore arrivées doivent être affichées dans le cas où elles arriveraient dans moins de 3 tempo
         for (var couple of tab_notes_entree)
         {
             if (couple[0]*tempo - timer <= 3*tempo)
             {
-                //couple[2] = false;
-                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,450+tempo+((450-330)%tempo),'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
+                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,330+3*tempo*vY_indic_notes,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 indic_note.setTint(0xff0000);
                 tab_notes_sortie.push(tab_notes_entree[0]);
                 tab_notes_entree.shift();
             }
-            /*text += couple[1] + ",";*/
-            //text0 += tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
         }
-        /*
-        for (var couple of tab_notes_sortie)
-        {
-            text0 += couple[1] + ","; //tab_notes_sortie.length + ",";//tab_notes_sortie[tab_notes_sortie.length -1] + ",";
-        }*/
-        
-        /*if (player.body.touchingdown && player.y > 450)
-        {
-            //tab_timer.push(timer);
-            text2 += timer + ",";
-        }*/
+
         /*
         debugText2.setText("partoche à venir : " + text);
         
@@ -287,13 +274,17 @@ class scene1 extends Phaser.Scene{
         
         debugText0.setText("partoche à arriver : " + text0);
         */
+
+        // pour chaque note affichée, on augmente sa hauteur jusqu'à ce qu'elle arrive à un certain palier.
+        // si le joueur en est suffisament près lorsqu'elle atteint ce palier, la note est jouée et marque un point.
+        // dans tous les cas, l'indicateur est détruit.
         children_notes = indic_notes.getChildren();
         
         for (var indic_note of children_notes)
         {
             //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
             indic_note.y -= vY_indic_notes;
-            if (indic_note.y < 330)
+            if (indic_note.y <= 330)
             {
                 if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 150)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
@@ -309,14 +300,8 @@ class scene1 extends Phaser.Scene{
                 note.play();
                 indic_note.destroy();
                 tab_notes_sortie.shift();
-                //this.physics.pause();
-                //player.y = 550;
             }
         }
-        
-        /*this.indic_notes.children.each(function(indic) {
-            indic.y += 1;
-            }, this);*/
         
         this.input.gamepad.once('connected', function (pad) {});
         
@@ -352,6 +337,8 @@ class scene1 extends Phaser.Scene{
             cd_bloc_rebond--;
         }
         
+        // lorsque le joueur appuie sur 'down', le jeu modifie le type de courbe sur lequel la baguette évolue
+        // selon le type de la courbe du quart de temps précédent, le type de la courbe actuelle ne sera pas la même
         if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
         {
             if (timer2 == 0)
@@ -470,6 +457,11 @@ class scene1 extends Phaser.Scene{
 
         y_top = tab_division[0][1];
         player.y = calcul_hauteur(tab_division[quart_section],timer2,tab_tempo[quart_section]);
+        console.log("tab_division[quart_section]",tab_division[quart_section]);
+        console.log("tab_tempo[quart_section]",tab_tempo[quart_section]);
+        console.log("player.y",player.y);
+        
+        //console.log(player.y);
         
         /*if (tab_division[0][0]==4)
         {
@@ -500,6 +492,8 @@ class scene1 extends Phaser.Scene{
         
         draw_baton(player.x,player.y,1);
 
+        timer2 = (timer2+1)%tempo;
+
         debugText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
@@ -514,32 +508,61 @@ function calcul_hauteur(type,t,t0)
 {
     let ymax;
     let delta;
+
+    // le type 2 correspond à un rebond de petite taille à un tempo 4 fois plus rapide que celui de base
     if(type==2)
     {
         ymax = y_mid;
         if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
         else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
+        console.log("delta",delta);
         return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
     }
     //calcul_hauteur(timer2/tab_division[0][0],0,tempo/tab_division[0][0],tab_division[0][1]);
     //calcul_hauteur(t,t0,delta,ymax)
     //4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
+
+    // le type 1 correspond à un rebond de grande taille; il est d'une largeur telle qu'il retombe sur un temps. 
     else if(type==1)
     {
-        t0 = 0
+        let pos_plus_proche_type23;
         ymax = y_top0;
-        /*if (quart_section==0){delta = tempo;}
-        else if (tab_tempo[quart_section]){delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}*/
-        delta = tempo;
+        if (quart_section == 0){pos_plus_proche_type23=-1;}
+        else if (quart_section == 1)
+        {
+            if (tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else {pos_plus_proche_type23=0;}
+        }
+        else if (quart_section == 2)
+        {
+            if (tab_division[1]==1 && tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else if (tab_division[1]==1){pos_plus_proche_type23=0;}
+            else {pos_plus_proche_type23=1;}
+        }
+        else if (quart_section == 3)
+        {
+            if (tab_division[2]==1 && tab_division[1]==1 && tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else if (tab_division[2]==1 && tab_division[1]==1){pos_plus_proche_type23=0;}
+            else if (tab_division[2]==1){pos_plus_proche_type23=1;}
+            else {pos_plus_proche_type23=2;}
+        }
+        if (pos_plus_proche_type23==-1){t0=0;delta=tempo;}
+        else {t0=tab_tempo[pos_plus_proche_type23+1];delta=tempo-tab_tempo[pos_plus_proche_type23];}
+        console.log("delta",delta);
         return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
     }
+
+    // le type 3 correspond à une transition entre un type 1 et un type 2, dans ce sens uniquement. Un type 4 correspondant 
+    // au sens inverse serait nécessaire pour une meilleure réactivité.
     else if(type==3)
     {
-        ymax = player.y;
+        if(ymax_type3_can_change){ymax_type3 = player.y;ymax_type3_can_change=false;}
+        console.log("ymax_type3 ++",ymax_type3);
         if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
         else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
-        if (quart_section==3){return ymax * (t - tempo)/(timer2 - tempo);}
-        else {return ymax * (t - (tab_tempo[quart_section+1]-1))/(timer2 - (tab_tempo[quart_section+1]-1));}
+        console.log("delta",delta);
+        if (quart_section==3){console.log("div **",ymax_type3 * (t - tempo)/(timer2 - tempo));return ymax_type3 * (t - tempo)/(timer2 - tempo);}
+        else {console.log("div ++",(timer2 - (tab_tempo[quart_section+1]-1)));console.log("quart_section",quart_section);return ymax_type3 * (t - (tab_tempo[quart_section+1]-1))/(timer2 - (tab_tempo[quart_section+1]-1));}
     }
 }
 
