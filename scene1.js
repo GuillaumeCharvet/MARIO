@@ -324,9 +324,13 @@ class scene1 extends Phaser.Scene{
             cd_bloc_rebond--;
         }
         
+        if (!cursors.up.isDown){bloc_down_allowed = true;}
+        if (!cursors.down.isDown){bloc_up_allowed = true;}
+
         // lorsque le joueur appuie sur 'down', le jeu modifie le type de courbe sur lequel la baguette évolue
         // selon le type de la courbe du quart de temps précédent, le type de la courbe actuelle ne sera pas la même
-        if (cursors.down.isDown && bloc_down_allowed && !bloc_present)
+
+        if (cursors.down.isDown && bloc_down_allowed)
         {
             if (timer2 == 0)
             {
@@ -353,26 +357,16 @@ class scene1 extends Phaser.Scene{
             //player.setVelocityY(-player.body.velocity.y);
         }
         
-        if (!cursors.down.isDown)
+        
+        
+        if (cursors.up.isDown && bloc_up_allowed)
         {
-            bloc_down_allowed = true;
+            tab_division[quart_section] = 4;
+            tab_division[quart_section+1] = 5;
+            bloc_down_allowed = false;
         }
         
-        if (cursors.up.isDown && bloc_up_allowed && !bloc_present)
-        {
-            bloc_up_allowed = false;
-            bloc_present = true;
-            bloc_rebond = murs.create(player.x, player.y + 80, 'bloc');
-            //boost_height = player.y;
-            cd_bloc_rebond = 180;
-            //player.setBounce(1);
-            //player.setVelocityY(-player.body.velocity.y);
-        }
         
-        if (!cursors.up.isDown)
-        {
-            bloc_up_allowed = true;
-        }
         
         if(!gamepad_used){
         if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
@@ -447,7 +441,7 @@ class scene1 extends Phaser.Scene{
 
         player.y = calcul_hauteur(tab_division[quart_section],timer2,tab_tempo[quart_section]);
         
-        //console.log(player.y);
+        console.log(player.y);
         
         /*if (tab_division[0][0]==4)
         {
@@ -534,8 +528,6 @@ function calcul_hauteur(type,t,t0)
         }
         if (pos_plus_proche_type23==-1){t0=0;delta=tempo;}
         else {t0=tab_tempo[pos_plus_proche_type23+1];delta=tempo-tab_tempo[pos_plus_proche_type23+1];}
-        console.log("delta",delta);
-        console.log("pos_plus_proche_type23",pos_plus_proche_type23);
         return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
     }
 
@@ -544,17 +536,51 @@ function calcul_hauteur(type,t,t0)
     else if(type==3)
     {
         if(ymax_type3_can_change){ymax_type3 = player.y;ymax_type3_can_change=false;}
-        console.log("ymax_type3 ++",ymax_type3);
         if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
         else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
-        console.log("delta",delta);
-
         if (quart_section==3){return y_sol + (ymax_type3 - y_sol) * (t - tempo)/(tab_tempo[quart_section] - tempo);}
         else {return y_sol + (ymax_type3 - y_sol) * (t - tab_tempo[quart_section+1])/(tab_tempo[quart_section] - tab_tempo[quart_section+1]);}
 
         /*if (quart_section==3){console.log("div **",ymax_type3 * (t - tempo)/(timer2 - tempo));return ymax_type3 * (t - tempo)/(tab_tempo[quart_section] - tempo);}
         else {console.log("div ++",(timer2 - (tab_tempo[quart_section+1]-1)));console.log("quart_section",quart_section);console.log("(t - (tab_tempo[quart_section+1]-1))",(t - (tab_tempo[quart_section+1]-1)));return ymax_type3 * (t - (tab_tempo[quart_section+1]-1))/(tab_tempo[quart_section] - (tab_tempo[quart_section+1]-1));}
     */}
+
+    // le type 4 correspond à un maintien en l'air
+    else if(type==4)
+    {
+        return player.y;
+    }
+
+    // le type 5 correspond à une transition d'un type 4 à un type 1, c'est une demi-parabole
+    else if(type==5)
+    {
+        let pos_plus_proche_type23;
+        ymax = player.y;
+        if (quart_section == 0){pos_plus_proche_type23=-1;}
+        else if (quart_section == 1)
+        {
+            if (tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else {pos_plus_proche_type23=0;}
+        }
+        else if (quart_section == 2)
+        {
+            if (tab_division[1]==1 && tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else if (tab_division[1]==1){pos_plus_proche_type23=0;}
+            else {pos_plus_proche_type23=1;}
+        }
+        else if (quart_section == 3)
+        {
+            if (tab_division[2]==1 && tab_division[1]==1 && tab_division[0]==1){pos_plus_proche_type23=-1;}
+            else if (tab_division[2]==1 && tab_division[1]==1){pos_plus_proche_type23=0;}
+            else if (tab_division[2]==1){pos_plus_proche_type23=1;}
+            else {pos_plus_proche_type23=2;}
+        }
+        if (pos_plus_proche_type23==-1){t0=0;delta=tempo;}
+        else {t0=tab_tempo[pos_plus_proche_type23+1];delta=2*(tempo-tab_tempo[pos_plus_proche_type23+1]);}
+        console.log("delta",delta);
+        console.log("pos_plus_proche_type23",pos_plus_proche_type23);
+        return 4*(y_sol-ymax)*(t+delta/2-t0)*(((t+delta/2-t0)/delta-1)/delta)+y_sol;
+    }
 }
 
 function draw_baton(x,y,alpha)
