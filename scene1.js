@@ -307,8 +307,10 @@ class scene1 extends Phaser.Scene{
         bois = this.add.sprite(0, 224, 'bois').setDepth(8.5);
         disque = this.add.sprite(0, 224, 'disque').setDepth(9);
         tete = this.add.sprite(0, 224, 'tete').setDepth(10);
-        tete.setOrigin(187,38);
-        tete.angle += 100;
+        tete.setOrigin((224+187)/447,38/447);
+        tete.x = 187;
+        tete.y = 38;
+        tete.angle += 90;
     }
     
     update ()
