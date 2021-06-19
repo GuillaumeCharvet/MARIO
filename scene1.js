@@ -69,7 +69,10 @@ var debugText;
 var debugText2;
 var debugText3;
 
+var score_sans_multi = 0;
 var score = 0;
+var multiplicateur = 1;
+var streak = 0;
 
 var text = "";
 var text0 = "";
@@ -84,7 +87,7 @@ var tonalite = 1;
 var tempo = 36;
 var indic_notes;
 
-var y_sol = 280;
+var y_sol = 250;
 var y_mid = 180;
 var y_top0 = 50;
 var y_top;
@@ -142,6 +145,8 @@ class scene1 extends Phaser.Scene{
         //this.load.audio('note', 'assets/audio/Bzz0.m4a');
         //this.load.audio('note', 'assets/audio/do2.wav');
         this.load.audio('note', 'assets/audio/do2_guitare.wav');
+
+        this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
     
     create ()
@@ -178,8 +183,15 @@ class scene1 extends Phaser.Scene{
         
         note = this.sound.add("note", { loop: false });
         
+        WebFont.load({
+            google: {
+                families: [ 'Limelight' ]
+            }
+        });
+
         debugText = this.add.text(16, 16,"debug", {
-            fontSize: '18px',
+            fontFamily: 'Limelight',
+            fontSize: '30px',
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         });
@@ -228,9 +240,32 @@ class scene1 extends Phaser.Scene{
             fill: '#ffffff'
         });
 
-        bouton_gauche = this.add.sprite(224, 224, 'bouton_gauche').setInteractive().setAlpha(0.2);
-        bouton_droit = this.add.sprite(672, 224, 'bouton_droit').setInteractive().setAlpha(0.2);
         
+
+        bouton_gauche = this.add.sprite(336, 224, 'bouton_gauche').setInteractive().setAlpha(0.00001);
+        bouton_droit = this.add.sprite(784, 224, 'bouton_droit').setInteractive().setAlpha(0.00001);
+                
+        bouton_gauche.on('pointerdown', function (pointer) {
+            aller_gauche = true;
+            mode_click = true;
+        });
+        bouton_gauche.on('pointerout', function (pointer) {
+            aller_gauche = false;
+        });
+        bouton_gauche.on('pointerup', function (pointer) {
+            aller_gauche = false;
+        });
+        bouton_droit.on('pointerdown', function (pointer) {
+            aller_droite = true;
+            mode_click = true;
+        });
+        bouton_droit.on('pointerout', function (pointer) {
+            aller_droite = false;
+        });
+        bouton_droit.on('pointerup', function (pointer) {
+            aller_droite = false;
+        });
+
     }
     
     update ()
@@ -238,7 +273,7 @@ class scene1 extends Phaser.Scene{
 
         if (tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)
         {
-            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + '/' + nombre_notes_total + " ??");},0);
+            setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??? \n " + score_sans_multi + ' notes /' + nombre_notes_total);},0);
         }
         
         timer++;
@@ -267,7 +302,7 @@ class scene1 extends Phaser.Scene{
         {
             if (couple[0]*tempo - timer <= 3*tempo)
             {
-                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,330+3*tempo*vY_indic_notes,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
+                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,300+3*tempo*vY_indic_notes,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 indic_note.setTint(0xff0000);
                 tab_notes_sortie.push(tab_notes_entree[0]);
                 tab_notes_entree.shift();
@@ -283,20 +318,30 @@ class scene1 extends Phaser.Scene{
         {
             //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
             indic_note.y -= vY_indic_notes;
-            if (indic_note.y <= 330)
+            if (indic_note.y <= 300)
             {
                 if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 200)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
-                    score++;
+                    streak++;
+
+                    if (streak >= 15){multiplicateur = 10}
+                    else if (streak >= 10){multiplicateur = 6}
+                    else if (streak >= 7){multiplicateur = 4}
+                    else if (streak >= 3){multiplicateur = 2}
+                    else {multiplicateur = 1;}
+
+                    score_sans_multi++;
+                    score = score + multiplicateur * 50;
                     game.sound.volume = 1;
                 }
                 else
                 {
                     game.sound.volume = 0.2;
+                    streak = 0;
                 }
                 tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
                 game.sound.setRate(tonalite);
-                note.play();
+                note.play(); // let joue_note = 
                 indic_note.destroy();
                 tab_notes_sortie.shift();
             }
@@ -377,28 +422,6 @@ class scene1 extends Phaser.Scene{
             tab_division[quart_section+1] = 5;
             bloc_down_allowed = false;
         }
-        
-        move = false;
-        bouton_gauche.on('pointerdown', function (pointer) {
-            aller_gauche = true;
-            mode_click = true;
-        });
-        bouton_gauche.on('pointerout', function (pointer) {
-            aller_gauche = false;
-        });
-        bouton_gauche.on('pointerup', function (pointer) {
-            aller_gauche = false;
-        });
-        bouton_droit.on('pointerdown', function (pointer) {
-            aller_droite = true;
-            mode_click = true;
-        });
-        bouton_droit.on('pointerout', function (pointer) {
-            aller_droite = false;
-        });
-        bouton_droit.on('pointerup', function (pointer) {
-            aller_droite = false;
-        });
 
         if (aller_gauche)
         {angle = 180; move = true;}
@@ -517,7 +540,7 @@ class scene1 extends Phaser.Scene{
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
                             '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
-                            '\n*/ 'score : ' + score);
+                            '\n*/ 'score : ' + score).setAngle(10);
     }
 
 }
