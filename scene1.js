@@ -66,6 +66,7 @@ var start = true;
 
 var debugText0;
 var debugText;
+var comboText;
 var debugText2;
 var debugText3;
 
@@ -120,6 +121,20 @@ var bouton_droit;
 var aller_droite = false;
 var mode_click = false;
 
+var silhouettes_noir;
+var silhouettes_couleur;
+var silhouettes_exterieur;
+
+var limites_notes;
+var panneau_gauche;
+var disque;
+var bois;
+var tete;
+
+var vitesse_rotation_disque = 0;
+
+var couleurs = [0xEA6400,0x0080FF,0xFFCE00,0xFF0019,0x00E7FF];
+
 class scene1 extends Phaser.Scene{
     
     constructor ()
@@ -130,10 +145,11 @@ class scene1 extends Phaser.Scene{
     
     preload ()
     {   
+        // ******** IMAGES ********
         this.load.image('dude', 'assets/images/dude.png');
         this.load.image('bloc', 'assets/images/platform.png');
         this.load.image('bric', 'assets/images/bric.png');
-        this.load.image('bg', 'assets/images/bg.png');
+        this.load.image('bg', 'assets/images/fond_sombre.png');
         this.load.image('power_up', 'assets/images/power_up.png');
         this.load.image('miel', 'assets/images/miel_pot.png');
         this.load.image('gold', 'assets/images/star.png');
@@ -142,10 +158,22 @@ class scene1 extends Phaser.Scene{
         this.load.image('bouton_gauche', 'assets/images/bouton_gauche.png');
         this.load.image('bouton_droit', 'assets/images/bouton_droit.png');
 
+        this.load.image('silhouettes_noir', 'assets/images/silhouettes_noir.png');
+        this.load.image('silhouettes_couleur', 'assets/images/silhouettes_couleur.png');
+        this.load.image('silhouettes_exterieur', 'assets/images/silhouettes_exterieur.png');
+
+        this.load.image('limites_notes', 'assets/images/limites_notes.png');
+        this.load.image('panneau_gauche', 'assets/images/panneau_gauche.png');
+        this.load.image('disque', 'assets/images/disque.png');
+        this.load.image('bois', 'assets/images/bois.png');
+        this.load.image('tete', 'assets/images/tete.png');
+
+        // ******** SONS ********
         //this.load.audio('note', 'assets/audio/Bzz0.m4a');
         //this.load.audio('note', 'assets/audio/do2.wav');
         this.load.audio('note', 'assets/audio/do2_guitare.wav');
 
+        // ******** FONT ********
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
     
@@ -155,7 +183,8 @@ class scene1 extends Phaser.Scene{
         
         this.physics.world.setBounds(config.height/2, 0, config.width-config.height/2, config.height);
         
-        bg = this.add.tileSprite(config.height/2+448, 224, 896, 448, 'bg');
+        bg = this.add.sprite(config.width/2, config.height/2, 'bg');
+        //bg = this.add.tileSprite(config.height/2+448, 224, 896, 448, 'bg');
         bg.setDepth(-1);
 
         // largeur d'une colonne -> on soustrait une demie hauteur à la largeur totale puis on divide par le nombre de colonnes
@@ -189,16 +218,19 @@ class scene1 extends Phaser.Scene{
             }
         });
 
-        debugText = this.add.text(16, 16,"debug", {
+        debugText = this.add.text(103, 208,score, {
             fontFamily: 'Limelight',
-            fontSize: '30px',
+            fontSize: '50px',
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
-        });
+        }).setDepth(10).setInteractive().setAngle(10);
         
-        /*this.physics.add.collider(player, murs, ground, null, this);*/
-        
-        //this.cameras.main.startFollow(player, true, 0.5, 0.5);
+        comboText = this.add.text(92, 272,streak, {
+            fontFamily: 'Limelight',
+            fontSize: '51px',
+            padding: { x: 10, y: 5 },
+            fill: '#ffffff'
+        }).setDepth(10).setInteractive().setAngle(27);
         
         this.input.gamepad.once('down', function (pad, button, index) {
             gamepad = pad;
@@ -266,16 +298,34 @@ class scene1 extends Phaser.Scene{
             aller_droite = false;
         });
 
+        silhouettes_noir = this.add.sprite(548, 324, 'silhouettes_noir').setDepth(2);
+        silhouettes_couleur = this.add.sprite(548, 324, 'silhouettes_couleur').setDepth(4.5);
+        silhouettes_exterieur = this.add.sprite(548, 409, 'silhouettes_exterieur').setDepth(4);
+
+        limites_notes = this.add.sprite(560, 300, 'limites_notes').setDepth(5);
+        //panneau_gauche = this.add.sprite(112, 224, 'panneau_gauche').setDepth(9);
+        bois = this.add.sprite(0, 224, 'bois').setDepth(8.5);
+        disque = this.add.sprite(0, 224, 'disque').setDepth(9);
+        tete = this.add.sprite(0, 224, 'tete').setDepth(10);
+        tete.setOrigin(187,38);
+        tete.angle += 100;
     }
     
     update ()
     {
 
-        if (tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)
+        /*if (tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)
         {
             setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??? \n " + score_sans_multi + ' notes /' + nombre_notes_total);},0);
-        }
+        }*/
         
+        if (tete.angle >0){tete.angle--;}
+
+        if (timer > 100){
+        vitesse_rotation_disque = Math.min(5,vitesse_rotation_disque+0.01);
+        disque.angle += vitesse_rotation_disque;
+        }
+
         timer++;
 
         //dernier_rebond = tab_division[quart_section];
@@ -303,7 +353,9 @@ class scene1 extends Phaser.Scene{
             if (couple[0]*tempo - timer <= 3*tempo)
             {
                 var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,300+3*tempo*vY_indic_notes,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
-                indic_note.setTint(0xff0000);
+                
+                indic_note.setTint(couleurs[couple[1]]);
+                indic_note.setDepth(3);
                 tab_notes_sortie.push(tab_notes_entree[0]);
                 tab_notes_entree.shift();
             }
@@ -330,6 +382,8 @@ class scene1 extends Phaser.Scene{
                     else if (streak >= 3){multiplicateur = 2}
                     else {multiplicateur = 1;}
 
+                    //texte_grossi(debugText);
+
                     score_sans_multi++;
                     score = score + multiplicateur * 50;
                     game.sound.volume = 1;
@@ -347,6 +401,12 @@ class scene1 extends Phaser.Scene{
             }
         }
         
+        if (streak >= 15){multiplicateur = 10}
+        else if (streak >= 10){multiplicateur = 6}
+        else if (streak >= 7){multiplicateur = 4}
+        else if (streak >= 3){multiplicateur = 2}
+        else {multiplicateur = 1;}
+
         this.input.gamepad.once('connected', function (pad) {});
         
         if (gamepad)
@@ -540,7 +600,14 @@ class scene1 extends Phaser.Scene{
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
                             '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
-                            '\n*/ 'score : ' + score).setAngle(10);
+                            '\n*/ score);
+
+        comboText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
+        '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
+        '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
+        '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
+        '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
+        '\n*/ 'X' + multiplicateur);
     }
 
 }
@@ -652,23 +719,27 @@ function draw_baton(x,y,alpha)
     let distAB = Math.pow(Math.pow(x0-x,2)+Math.pow(y0-y,2),1/2);
     
     //Affichage de l'extremite eloignee
-    graphics.fillStyle(0x3A3023, alpha);
-    graphics.fillCircle(x0,y0,radius0);
+    graphics.fillStyle(0xFFFCF8, alpha);
+    graphics.fillCircle(x0,y0,radius0).setDepth(5);
     
     //Affichage de la baguette
     let poly = new Phaser.Geom.Polygon();
 
     poly.setTo([ new Phaser.Geom.Point(x-radius2*(y0-y)/distAB, y+radius2*(x0-x)/distAB), new Phaser.Geom.Point(x0-radius0*(y0-y)/distAB, y0+radius0*(x0-x)/distAB), new Phaser.Geom.Point(x0+radius0*(y0-y)/distAB, y0-radius0*(x0-x)/distAB), new Phaser.Geom.Point(x+radius2*(y0-y)/distAB, y-radius2*(x0-x)/distAB) ]);
-    graphics.fillStyle(0x3A3023, alpha);
-    graphics.fillPoints(poly.points, true);
+    graphics.fillStyle(0xFFFCF8, alpha);
+    graphics.fillPoints(poly.points, true).setDepth(5);
     
-    //Affichage de l'extremite proche
-    graphics.fillStyle(0x9B8A72, alpha);
-    graphics.fillCircle(x,y,radius2);
+    //Affichage de l'extremite proche 1
+    graphics.fillStyle(0x1D1D1B, alpha);
+    graphics.fillCircle(x,y,radius2).setDepth(5);
+
+    //Affichage de l'extremite proche 2
+    graphics.fillStyle(0xFFFCF8, alpha);
+    graphics.fillCircle(x,y,radius2-2).setDepth(5);
     
-    //Affichage de l'extremite proche
-    graphics.fillStyle(0x3A3023, alpha);
-    graphics.fillCircle(x,y,radius3);
+    //Affichage de l'extremite proche 3
+    graphics.fillStyle(0x1D1D1B, alpha);
+    graphics.fillCircle(x,y,radius3).setDepth(5);
 }
 
 function getX0(x,y)
@@ -688,4 +759,11 @@ function ground (player, murs)
             //tab_timer.push(timer);
             text2 += timer + ",";
         }
+}
+
+function texte_grossi(texte)
+{
+    //for (let k = 0; k < 100; k++) {
+        texte.setFontSize(texte.fontSize + 2 + 'px');
+    //}
 }
