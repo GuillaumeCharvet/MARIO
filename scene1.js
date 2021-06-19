@@ -111,6 +111,12 @@ var nombre_notes_total;
 
 var textFinal;
 
+var bouton_gauche;
+var aller_gauche = false;
+var bouton_droit;
+var aller_droite = false;
+var mode_click = false;
+
 class scene1 extends Phaser.Scene{
     
     constructor ()
@@ -130,6 +136,9 @@ class scene1 extends Phaser.Scene{
         this.load.image('gold', 'assets/images/star.png');
         this.load.image('cle', 'assets/images/cle.jpg');
         
+        this.load.image('bouton_gauche', 'assets/images/bouton_gauche.png');
+        this.load.image('bouton_droit', 'assets/images/bouton_droit.png');
+
         //this.load.audio('note', 'assets/audio/Bzz0.m4a');
         //this.load.audio('note', 'assets/audio/do2.wav');
         this.load.audio('note', 'assets/audio/do2_guitare.wav');
@@ -218,6 +227,9 @@ class scene1 extends Phaser.Scene{
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         });
+
+        bouton_gauche = this.add.sprite(224, 224, 'bouton_gauche').setInteractive().setAlpha(0.2);
+        bouton_droit = this.add.sprite(672, 224, 'bouton_droit').setInteractive().setAlpha(0.2);
         
     }
     
@@ -273,7 +285,7 @@ class scene1 extends Phaser.Scene{
             indic_note.y -= vY_indic_notes;
             if (indic_note.y <= 330)
             {
-                if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 150)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 200)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                 {
                     score++;
                     game.sound.volume = 1;
@@ -366,52 +378,78 @@ class scene1 extends Phaser.Scene{
             bloc_down_allowed = false;
         }
         
-        
-        
-        if(!gamepad_used){
-        if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
-        {
-            angle = 180;
-            move = true;
-        }
-        else if (!cursors.left.isDown && cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
-        {
-            angle = 270;
-            move = true;
-        }    
-        else if (!cursors.left.isDown && !cursors.up.isDown && cursors.right.isDown && !cursors.down.isDown)
-        {
-            angle = 0;
-            move = true;
-        }   
-        else if (!cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && cursors.down.isDown)
-        {
-            angle = 90;
-            move = true;
-        }
-        else if (cursors.left.isDown && cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
-        {
-            angle = 225;
-            move = true;
-        }
-        else if (!cursors.left.isDown && cursors.up.isDown && cursors.right.isDown && !cursors.down.isDown)
-        {
-            angle = 315;
-            move = true;
-        }
-        else if (!cursors.left.isDown && !cursors.up.isDown && cursors.right.isDown && cursors.down.isDown)
-        {
-            angle = 45;
-            move = true;
-        }
-        else if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && cursors.down.isDown)
-        {
-            angle = 135;
-            move = true;
-        }
+        move = false;
+        bouton_gauche.on('pointerdown', function (pointer) {
+            aller_gauche = true;
+            mode_click = true;
+        });
+        bouton_gauche.on('pointerout', function (pointer) {
+            aller_gauche = false;
+        });
+        bouton_gauche.on('pointerup', function (pointer) {
+            aller_gauche = false;
+        });
+        bouton_droit.on('pointerdown', function (pointer) {
+            aller_droite = true;
+            mode_click = true;
+        });
+        bouton_droit.on('pointerout', function (pointer) {
+            aller_droite = false;
+        });
+        bouton_droit.on('pointerup', function (pointer) {
+            aller_droite = false;
+        });
+
+        if (aller_gauche)
+        {angle = 180; move = true;}
+        else if (aller_droite)
+        {angle = 0; move = true;}
         else {move = false;}
-        }
         
+        if(!gamepad_used && !mode_click){
+            if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
+            {
+                angle = 180;
+                move = true;
+            }
+            else if (!cursors.left.isDown && cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
+            {
+                angle = 270;
+                move = true;
+            }    
+            else if (!cursors.left.isDown && !cursors.up.isDown && cursors.right.isDown && !cursors.down.isDown)
+            {
+                angle = 0;
+                move = true;
+            }   
+            else if (!cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && cursors.down.isDown)
+            {
+                angle = 90;
+                move = true;
+            }
+            else if (cursors.left.isDown && cursors.up.isDown && !cursors.right.isDown && !cursors.down.isDown)
+            {
+                angle = 225;
+                move = true;
+            }
+            else if (!cursors.left.isDown && cursors.up.isDown && cursors.right.isDown && !cursors.down.isDown)
+            {
+                angle = 315;
+                move = true;
+            }
+            else if (!cursors.left.isDown && !cursors.up.isDown && cursors.right.isDown && cursors.down.isDown)
+            {
+                angle = 45;
+                move = true;
+            }
+            else if (cursors.left.isDown && !cursors.up.isDown && !cursors.right.isDown && cursors.down.isDown)
+            {
+                angle = 135;
+                move = true;
+            }
+            else {move = false;}
+        }
+
         if (move)
         {
             //player.x += velocity * Math.cos(2*Math.PI*angle/360);
