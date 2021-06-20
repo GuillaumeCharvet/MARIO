@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <title>Dernier solo pour Ernesto</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.54.0/dist/phaser.js"></script>
-    <script src="scene1.js"></script>
-    <script src="scene2.js"></script>
+    <script src="menu.js"></script>
+    <script src="main.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -29,7 +29,7 @@ var config = {
     parent: 'phaser-example',
     width: 896,
     height: 448,
-    scene: [scene1, scene2]
+    scene: [menu, main]
 };
 
 var game = new Phaser.Game(config);
