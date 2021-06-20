@@ -65,8 +65,6 @@ var miels;
 var start = true;
 
 var debugText0;
-var debugText;
-var comboText;
 var debugText2;
 var debugText3;
 
@@ -82,11 +80,14 @@ var text2 = "";
 
 var tab_notes_entree;
 var tab_notes_sortie;
+var tab_notes_effet;
 var timer = 0;
 
 var tonalite = 1;
 var tempo = 36;
+
 var indic_notes;
+var children_notes;
 
 var y_sol = 250;
 var y_mid = 180;
@@ -107,13 +108,16 @@ var dernier_rebond = 1;
 
 var vY_indic_notes = 1;
 
-var children_notes;
-
 var note;
 
 var nombre_notes_total;
 
 var textFinal;
+
+var scoreText;
+var sizeFontScore = 50;
+var comboText;
+var sizeFontCombo = 51;
 
 var bouton_gauche;
 var aller_gauche = false;
@@ -146,14 +150,8 @@ class scene1 extends Phaser.Scene{
     preload ()
     {   
         // ******** IMAGES ********
-        this.load.image('dude', 'assets/images/dude.png');
-        this.load.image('bloc', 'assets/images/platform.png');
-        this.load.image('bric', 'assets/images/bric.png');
+        this.load.image('bloc', 'assets/images/note_strillee.png');
         this.load.image('bg', 'assets/images/fond_sombre.png');
-        this.load.image('power_up', 'assets/images/power_up.png');
-        this.load.image('miel', 'assets/images/miel_pot.png');
-        this.load.image('gold', 'assets/images/star.png');
-        this.load.image('cle', 'assets/images/cle.jpg');
         
         this.load.image('bouton_gauche', 'assets/images/bouton_gauche.png');
         this.load.image('bouton_droit', 'assets/images/bouton_droit.png');
@@ -210,7 +208,7 @@ class scene1 extends Phaser.Scene{
         player.setBounce(0.845);
         player.setVisible(false);
         
-        note = this.sound.add("note", { loop: false });
+        note = this.sound.add("note");
         
         WebFont.load({
             google: {
@@ -218,16 +216,16 @@ class scene1 extends Phaser.Scene{
             }
         });
 
-        debugText = this.add.text(103, 208,score, {
+        scoreText = this.add.text(103, 208,score, {
             fontFamily: 'Limelight',
-            fontSize: '50px',
+            fontSize: sizeFontScore+'px',
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         }).setDepth(10).setInteractive().setAngle(10);
         
         comboText = this.add.text(92, 272,streak, {
             fontFamily: 'Limelight',
-            fontSize: '51px',
+            fontSize: sizeFontCombo+'px',
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         }).setDepth(10).setInteractive().setAngle(27);
@@ -354,7 +352,7 @@ class scene1 extends Phaser.Scene{
         {
             if (couple[0]*tempo - timer <= 3*tempo)
             {
-                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,300+3*tempo*vY_indic_notes,'bloc').setScale(largeur_note/400,0.25);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
+                var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,300+4*tempo*vY_indic_notes,'bloc').setScale(largeur_note/124,1);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 
                 indic_note.setTint(couleurs[couple[1]]);
                 indic_note.setDepth(3);
@@ -370,39 +368,50 @@ class scene1 extends Phaser.Scene{
         
         for (var indic_note of children_notes)
         {
-            //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
-            indic_note.y -= vY_indic_notes;
-            if (indic_note.y <= 300)
+            if (indic_note.y > 300)
             {
-                if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 200)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                //indic_note.y -= 0.4 + (750 - indic_note.y)/60;
+                indic_note.y -= vY_indic_notes;
+                if (indic_note.y <= 300)
                 {
-                    streak++;
+                    if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 180)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                    {
+                        streak++;
 
-                    if (streak >= 15){multiplicateur = 10}
-                    else if (streak >= 10){multiplicateur = 6}
-                    else if (streak >= 7){multiplicateur = 4}
-                    else if (streak >= 3){multiplicateur = 2}
-                    else {multiplicateur = 1;}
+                        if (streak >= 15){multiplicateur = 10}
+                        else if (streak >= 10){multiplicateur = 6}
+                        else if (streak >= 7){multiplicateur = 4}
+                        else if (streak >= 3){multiplicateur = 2}
+                        else {multiplicateur = 1;}
 
-                    //texte_grossi(debugText);
-
-                    score_sans_multi++;
-                    score = score + multiplicateur * 50;
-                    game.sound.volume = 1;
+                        texte_grossi(scoreText);
+                        //coreText.setFontSize(200);
+                        score_sans_multi++;
+                        score += multiplicateur * 50;
+                        game.sound.volume = 1;
+                    }
+                    else
+                    {
+                        game.sound.volume = 0.2;
+                        streak = 0;
+                        indic_note.destroy();
+                        this.cameras.main.shake(200,0.01);
+                    }
+                    tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
+                    game.sound.setRate(tonalite);
+                    note.play(); // let joue_note = 
+                    tab_notes_sortie.shift();                    
                 }
-                else
-                {
-                    game.sound.volume = 0.2;
-                    streak = 0;
-                }
-                tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
-                game.sound.setRate(tonalite);
-                note.play(); // let joue_note = 
-                indic_note.destroy();
-                tab_notes_sortie.shift();
+            }
+            else
+            {
+                //indic_note.scaleX *= 1.03;
+                indic_note.scaleY *= 1.08;
+                indic_note.alpha *= 0.96;
+                if (indic_note.alpha < 0.3){indic_note.destroy();}
             }
         }
-        
+
         if (streak >= 15){multiplicateur = 10}
         else if (streak >= 10){multiplicateur = 6}
         else if (streak >= 7){multiplicateur = 4}
@@ -597,7 +606,7 @@ class scene1 extends Phaser.Scene{
 
         timer2 = (timer2+1)%tempo;
 
-        debugText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
+        scoreText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
                             '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
                             '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
                             '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
@@ -765,7 +774,8 @@ function ground (player, murs)
 
 function texte_grossi(texte)
 {
-    //for (let k = 0; k < 100; k++) {
-        texte.setFontSize(texte.fontSize + 2 + 'px');
-    //}
+    for (let k = 0; k < 5; k++) {
+        setTimeout(function(){texte.setFontSize(sizeFontScore+5*k);},k*2);
+        setTimeout(function(){texte.setFontSize(sizeFontScore+20-5*k);},(k+5)*2);
+    }
 }
