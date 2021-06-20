@@ -134,6 +134,7 @@ var silhouettes_couleur;
 var silhouettes_exterieur;
 
 var limites_notes;
+var limites_notes_int;
 var panneau_gauche;
 var disque;
 var bois;
@@ -181,6 +182,7 @@ class main extends Phaser.Scene{
         this.load.image('silhouettes_exterieur', 'assets/images/silhouettes_exterieur.png');
 
         this.load.image('limites_notes', 'assets/images/limites_notes.png');
+        this.load.image('limites_notes_int', 'assets/images/limites_notes_int.png');
         this.load.image('panneau_gauche', 'assets/images/panneau_gauche.png');
         this.load.image('disque', 'assets/images/disque.png');
         this.load.image('bois', 'assets/images/bois.png');
@@ -344,6 +346,7 @@ class main extends Phaser.Scene{
         silhouettes_exterieur = this.add.sprite(548, 409, 'silhouettes_exterieur').setDepth(4);
 
         limites_notes = this.add.sprite(560, 300, 'limites_notes').setDepth(5);
+        limites_notes_int = this.add.sprite(560, 300, 'limites_notes_int').setDepth(5).setAlpha(0.5);
         //panneau_gauche = this.add.sprite(112, 224, 'panneau_gauche').setDepth(9);
         bois = this.add.sprite(0, 224, 'bois').setDepth(8.5);
         disque = this.add.sprite(0, 224, 'disque').setDepth(9);
@@ -429,23 +432,39 @@ class main extends Phaser.Scene{
             setTimeout(function(){textFinal.setText("C'est qui le bogoss \n avec son gros \n score de " + score + " ??? \n " + score_sans_multi + ' notes /' + nombre_notes_total);},0);
         }*/
         
-        if (tete.angle >0){tete.angle--;}
+        // Gestion de la rotation de la tete
+        if (tete.angle >0 ){tete.angle--;}
+        else if (tete.angle <0 ){tete.angle++;}
+        if(cd_erreur){tete.angle += Math.floor(Math.random()*11-5);}
 
         if (vitesse_rotation_disque == 0 && debut_morceau){disque_debut.play(); setTimeout(()=>{debut_morceau=false;},5000)}
         else if (vitesse_rotation_disque < 6.2 && !debut_morceau && fin_morceau){disque_fin.play(); fin_morceau=false;}
         //else if (milieu_morceau && timer%600==0 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)){disque_milieu.play();}
 
+        // Gestion de la rotation du disque
+        // -> Acceleration du disque au debut puis vitesse constante
         if (timer > 100 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0))
         {
             vitesse_rotation_disque = Math.min(6.28,vitesse_rotation_disque+0.01);
             disque.angle += vitesse_rotation_disque;
         }
-
+        // -> Deceleration du disque a la fin
         if (tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)
         {
             vitesse_rotation_disque = Math.max(0,vitesse_rotation_disque-0.03);
             disque.angle += vitesse_rotation_disque;
         }
+
+        // Mouvement des spectateurs en fonction de la valeur du combo
+        if (bg.x<config.width/2){bg.x+=10;}
+        else if (bg.x>config.width/2){bg.x-=10;}
+        if (bg.y<config.height/2){bg.y+=20;}
+        else if (bg.y>config.height/2){bg.y-=20;}
+
+        
+            bg.x += Math.floor(Math.random(streak+1)-streak/2);
+            bg.y += Math.floor(Math.random(2*streak+1)-streak);
+        
 
         cd_erreur = Math.max(0,cd_erreur-1);
 
@@ -454,13 +473,13 @@ class main extends Phaser.Scene{
         //dernier_rebond = tab_division[quart_section];
         if(timer2==tab_tempo[0]||timer2==tab_tempo[1]||timer2==tab_tempo[2]||timer2==tab_tempo[3]){dernier_rebond = tab_division[quart_section];ymax_type3_can_change=true;}
 
-        // chaque temps est décomposé en 4 sous-temps, on note dans lequel on se trouve
+        // Chaque temps est décomposé en 4 sous-temps, on note dans lequel on se trouve
         if(timer2==tab_tempo[0]){quart_section=0;console.log(quart_section);}
         else if(timer2==tab_tempo[1]){quart_section=1;console.log(quart_section);}
         else if(timer2==tab_tempo[2]){quart_section=2;console.log(quart_section);}
         else if(timer2==tab_tempo[3]){quart_section=3;console.log(quart_section);}
 
-        // les données du temps précédent sont décalés au nouveau temps
+        // Les données du temps précédent sont décalés au nouveau temps
         if (timer2 == 0)
         {
             for (let k = 0; k < 4; k++)
@@ -470,7 +489,7 @@ class main extends Phaser.Scene{
             }
         }
 
-        // on vérifie si les notes qui ne sont pas encore arrivées doivent être affichées dans le cas où elles arriveraient dans moins de 3 tempo
+        // On vérifie si les notes qui ne sont pas encore arrivées doivent être affichées dans le cas où elles arriveraient dans moins de 3 tempo
         for (var couple of tab_notes_entree)
         {
             if ((couple[0]+2)*tempo - timer <= 3*tempo)
@@ -484,9 +503,9 @@ class main extends Phaser.Scene{
             }
         }
 
-        // pour chaque note affichée, on augmente sa hauteur jusqu'à ce qu'elle arrive à un certain palier.
-        // si le joueur en est suffisament près lorsqu'elle atteint ce palier, la note est jouée et marque un point.
-        // dans tous les cas, l'indicateur est détruit.
+        // Pour chaque note affichée, on augmente sa hauteur jusqu'à ce qu'elle arrive à un certain palier.
+        // Si le joueur en est suffisament près lorsqu'elle atteint ce palier, la note est jouée et marque un point.
+        // Dans tous les cas, l'indicateur est détruit.
         children_notes = indic_notes.getChildren();
         
         for (var indic_note of children_notes)
@@ -497,7 +516,8 @@ class main extends Phaser.Scene{
                 indic_note.y -= vY_indic_notes;
                 if (indic_note.y <= 300)
                 {
-                    if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 180)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
+                    indic_note.setDepth(7);
+                    if ( Math.abs(player.x - indic_note.x) <= 67 && player.y > 160)//(Math.pow(Math.pow(player.x - indic_note.x,2)+0.2*Math.pow(player.y - indic_note.y,2),0.5) <= 100)
                     {
                         streak++;
 
@@ -518,14 +538,13 @@ class main extends Phaser.Scene{
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         cd_erreur = 0;
-
                     }
                     else
                     {
                         game.sound.volume = 0.2;
                         streak = 0;
                         indic_note.destroy();
-                        this.cameras.main.shake(200,0.01);
+                        //this.cameras.main.shake(200,0.01);
                         cd_erreur = 30;
                     }
                     if (tab_notes_sortie[0][1]==0)
@@ -547,7 +566,7 @@ class main extends Phaser.Scene{
                     }
                     else if (tab_notes_sortie[0][1]==2)
                     {
-                        tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2]-0.5)/12);
+                        tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2]-0.4-12)/12);
                         game.sound.setRate(tonalite);
                         contrebasse.stop();
                         trompette.stop();
@@ -625,8 +644,8 @@ class main extends Phaser.Scene{
         if (!cursors.up.isDown){bloc_down_allowed = true;}
         if (!cursors.down.isDown){bloc_up_allowed = true;}
 
-        // lorsque le joueur appuie sur 'down', le jeu modifie le type de courbe sur lequel la baguette évolue
-        // selon le type de la courbe du quart de temps précédent, le type de la courbe actuelle ne sera pas la même
+        // Lorsque le joueur appuie sur 'down', le jeu modifie le type de courbe sur lequel la baguette évolue
+        // Selon le type de la courbe du quart de temps précédent, le type de la courbe actuelle ne sera pas la même
 
         if (cursors.down.isDown && bloc_down_allowed && !mode_click)
         {
@@ -763,8 +782,6 @@ class main extends Phaser.Scene{
 
         player.y = calcul_hauteur(tab_division[quart_section],timer2,tab_tempo[quart_section]);
         
-        console.log(player.y);
-        
         /*if (tab_division[0][0]==4)
         {
             console.log(player.y);
@@ -796,19 +813,9 @@ class main extends Phaser.Scene{
 
         timer2 = (timer2+1)%tempo;
 
-        scoreText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
-                            '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
-                            '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
-                            '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
-                            '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
-                            '\n*/ score);
-
-        comboText.setText(  /*'\n timer : ' + 10*Math.round(timer/10) +
-        '\n player.x0 : ' + 10*Math.round(player.x/10) + '  ***  player.y0 : ' + 10*Math.round(player.y/10) +
-        '\n player.Vx0 : ' + 10*Math.round(vX0/10) + '  ***  player.Vy0 : ' + 10*Math.round(vY0/10) +
-        '\n player.Vx1 : ' + 10*Math.round(vX1/10) + '  ***  player.Vy1 : ' + 10*Math.round(vY1/10) +
-        '\n player.Accx : ' + 10*Math.round(player.body.acceleration.x/10) + '  ***  player.Accy : ' + 10*Math.round(player.body.acceleration.y/10) +
-        '\n*/ 'X' + multiplicateur);
+        // Mise a jour affichage score et combo
+        scoreText.setText(score);
+        comboText.setText('X' + multiplicateur);
     }
 
 }
