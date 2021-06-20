@@ -108,7 +108,11 @@ var dernier_rebond = 1;
 
 var vY_indic_notes = 1;
 
-var note;
+var trombone;
+var saxophone;
+var guitare;
+var contrebasse;
+var trompette;
 
 var nombre_notes_total;
 
@@ -135,7 +139,12 @@ var disque;
 var bois;
 var tete;
 
+var cd_erreur = 0;
+
 var vitesse_rotation_disque = 0;
+var debut_morceau = true;
+var milieu_morceau = true;
+var fin_morceau = true;
 
 var couleurs = [0xEA6400,0x0080FF,0xFFCE00,0xFF0019,0x00E7FF];
 var emitter0;
@@ -145,6 +154,10 @@ var FX3;
 var FX4;
 var FX5;
 var FXs;
+
+var disque_debut;
+var disque_milieu;
+var disque_fin;
 
 class main extends Phaser.Scene{
     
@@ -183,7 +196,15 @@ class main extends Phaser.Scene{
         // ******** SONS ********
         //this.load.audio('note', 'assets/audio/Bzz0.m4a');
         //this.load.audio('note', 'assets/audio/do2.wav');
-        this.load.audio('note', 'assets/audio/do2_guitare.wav');
+        this.load.audio('trombone', 'assets/audio/la3diese_trompette.wav');
+        this.load.audio('saxophone', 'assets/audio/do2_saxophone.wav');
+        this.load.audio('guitare', 'assets/audio/do2_guitare.wav');
+        this.load.audio('contrebasse', 'assets/audio/si1_contrebasse.wav');
+        this.load.audio('trompette', 'assets/audio/la3diese_trompette.wav');
+
+        this.load.audio('disque_debut', 'assets/audio/disque_debut.wav');
+        this.load.audio('disque_milieu', 'assets/audio/disque_milieuDB3.mp3');
+        this.load.audio('disque_fin', 'assets/audio/disque_fin.wav');
 
         // ******** FONT ********
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
@@ -222,7 +243,15 @@ class main extends Phaser.Scene{
         player.setBounce(0.845);
         player.setVisible(false);
         
-        note = this.sound.add("note");
+        trombone = this.sound.add("trombone");
+        saxophone = this.sound.add("saxophone");
+        guitare = this.sound.add("guitare");
+        contrebasse = this.sound.add("contrebasse");
+        trompette = this.sound.add("trompette");
+
+        disque_debut = this.sound.add("disque_debut");
+        disque_milieu = this.sound.add("disque_milieu",{ loop: true });
+        disque_fin = this.sound.add("disque_fin");
         
         WebFont.load({
             google: {
@@ -354,7 +383,7 @@ class main extends Phaser.Scene{
             x: 600,
             y: 250,
             speed: { min: 400, max: 600 },
-            angle: { min: 260, max: 280 },
+            angle: { min: 250, max: 290 },
             scale: { start: 0.5, end: 0 },
             rotate: {start: 0, end: 180 },
             blendMode: 'SCREEN',
@@ -367,7 +396,7 @@ class main extends Phaser.Scene{
             x: 700,
             y: 250,
             speed: { min: 400, max: 600 },
-            angle: { min: 260, max: 280 },
+            angle: { min: 250, max: 280 },
             scale: { start: 0.5, end: 0 },
             blendMode: 'SCREEN',
             //active: false,
@@ -379,7 +408,7 @@ class main extends Phaser.Scene{
             x: 780,
             y: 250,
             speed: { min: 400, max: 600 },
-            angle: { min: 200, max: 240 },
+            angle: { min: 220, max: 260 },
             scale: { start: 0.5, end: 0 },
             rotate: {start: 0, end: 180 },
             blendMode: 'SCREEN',
@@ -402,6 +431,10 @@ class main extends Phaser.Scene{
         
         if (tete.angle >0){tete.angle--;}
 
+        if (vitesse_rotation_disque == 0 && debut_morceau){disque_debut.play(); setTimeout(()=>{debut_morceau=false;},5000)}
+        else if (vitesse_rotation_disque < 6.2 && !debut_morceau && fin_morceau){disque_fin.play(); fin_morceau=false;}
+        //else if (milieu_morceau && timer%600==0 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)){disque_milieu.play();}
+
         if (timer > 100 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0))
         {
             vitesse_rotation_disque = Math.min(6.28,vitesse_rotation_disque+0.01);
@@ -414,7 +447,7 @@ class main extends Phaser.Scene{
             disque.angle += vitesse_rotation_disque;
         }
 
-
+        cd_erreur = Math.max(0,cd_erreur-1);
 
         timer++;
 
@@ -440,7 +473,7 @@ class main extends Phaser.Scene{
         // on vérifie si les notes qui ne sont pas encore arrivées doivent être affichées dans le cas où elles arriveraient dans moins de 3 tempo
         for (var couple of tab_notes_entree)
         {
-            if (couple[0]*tempo - timer <= 3*tempo)
+            if ((couple[0]+2)*tempo - timer <= 3*tempo)
             {
                 var indic_note = indic_notes.create(limite_gauche+couple[1]*largeur_note,300+4*tempo*vY_indic_notes,'bloc').setScale(largeur_note/124,1);//couple[1]*300+150,450,'bloc').setScale(0.5,0.25);
                 
@@ -484,6 +517,8 @@ class main extends Phaser.Scene{
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         (FXs[tab_notes_sortie[0][1]]).explode();
+                        cd_erreur = 0;
+
                     }
                     else
                     {
@@ -491,11 +526,51 @@ class main extends Phaser.Scene{
                         streak = 0;
                         indic_note.destroy();
                         this.cameras.main.shake(200,0.01);
+                        cd_erreur = 30;
                     }
-                    tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2])/12);
-                    game.sound.setRate(tonalite);
-                    note.play(); // let joue_note = 
-                    tab_notes_sortie.shift();                    
+                    if (tab_notes_sortie[0][1]==0)
+                    {
+                        tonalite = 2*Math.pow(2,(2+tab_notes_sortie[0][2]-12)/12);
+                        game.sound.setRate(tonalite);
+                        guitare.stop();
+                        contrebasse.stop();
+                        trombone.play(); // let joue_note = 
+                    }
+                    else if (tab_notes_sortie[0][1]==1)
+                    {
+                        tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2]-12)/12);
+                        game.sound.setRate(tonalite);
+                        guitare.stop();
+                        contrebasse.stop();
+                        trompette.stop();
+                        saxophone.play(); // let joue_note = 
+                    }
+                    else if (tab_notes_sortie[0][1]==2)
+                    {
+                        tonalite = 2*Math.pow(2,(tab_notes_sortie[0][2]-0.5)/12);
+                        game.sound.setRate(tonalite);
+                        contrebasse.stop();
+                        trompette.stop();
+                        guitare.play(); // let joue_note = 
+                    }
+                    else if (tab_notes_sortie[0][1]==3)
+                    {
+                        tonalite = 2*Math.pow(2,(1+tab_notes_sortie[0][2]-0.6-12)/12);
+                        game.sound.setRate(tonalite);
+                        guitare.stop();
+                        trompette.stop();
+                        contrebasse.play(); // let joue_note = 
+                    }
+                    else
+                    {
+                        tonalite = 2*Math.pow(2,(2+tab_notes_sortie[0][2]-12)/12);
+                        game.sound.setRate(tonalite);
+                        guitare.stop();
+                        contrebasse.stop();
+                        trompette.play(); // let joue_note = 
+                    }
+                    tab_notes_sortie.shift();        
+                                
                 }
             }
             else
@@ -553,7 +628,7 @@ class main extends Phaser.Scene{
         // lorsque le joueur appuie sur 'down', le jeu modifie le type de courbe sur lequel la baguette évolue
         // selon le type de la courbe du quart de temps précédent, le type de la courbe actuelle ne sera pas la même
 
-        if (cursors.down.isDown && bloc_down_allowed)
+        if (cursors.down.isDown && bloc_down_allowed && !mode_click)
         {
             if (timer2 == 0)
             {
@@ -582,14 +657,34 @@ class main extends Phaser.Scene{
         
         
         
-        if (cursors.up.isDown && bloc_up_allowed)
+        if (cursors.up.isDown && bloc_up_allowed && !mode_click)
         {
             tab_division[quart_section] = 4;
             tab_division[quart_section+1] = 5;
             bloc_down_allowed = false;
         }
 
-        if (aller_gauche)
+        
+        if (aller_gauche && aller_droite)
+        {
+            move = false;
+            if (timer2 == 0)
+            {
+                tab_division[0] = 2;
+            }
+            else
+            {
+                if (dernier_rebond == 2 || dernier_rebond == 3)
+                {
+                    tab_division[quart_section] = 2;
+                }
+                else
+                {
+                    tab_division[quart_section] = 3;
+                }
+            }
+        }
+        else if (aller_gauche)
         {angle = 180; move = true;}
         else if (aller_droite)
         {angle = 0; move = true;}
