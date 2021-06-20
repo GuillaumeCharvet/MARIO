@@ -138,12 +138,19 @@ var tete;
 var vitesse_rotation_disque = 0;
 
 var couleurs = [0xEA6400,0x0080FF,0xFFCE00,0xFF0019,0x00E7FF];
+var emitter0;
+var FX1;
+var FX2;
+var FX3;
+var FX4;
+var FX5;
+var FXs;
 
-class scene1 extends Phaser.Scene{
+class main extends Phaser.Scene{
     
     constructor ()
     {
-        super("scene1");
+        super("main");
         this.pad = null;
     }
     
@@ -165,6 +172,13 @@ class scene1 extends Phaser.Scene{
         this.load.image('disque', 'assets/images/disque.png');
         this.load.image('bois', 'assets/images/bois.png');
         this.load.image('tete', 'assets/images/tete.png');
+
+        // ******** FX ********
+        this.load.image('FX1', 'assets/images/FX1.png');
+        this.load.image('FX2', 'assets/images/FX2.png');
+        this.load.image('FX3', 'assets/images/FX3.png');
+        this.load.image('FX4', 'assets/images/FX4.png');
+        this.load.image('FX5', 'assets/images/FX5.png');
 
         // ******** SONS ********
         //this.load.audio('note', 'assets/audio/Bzz0.m4a');
@@ -309,6 +323,73 @@ class scene1 extends Phaser.Scene{
         tete.x = 187;
         tete.y = 38;
         tete.angle += 90;
+
+        FX1 = this.add.particles('FX1').createEmitter({
+            x: 370,
+            y: 240,
+            speed: { min: 400, max: 550 },
+            angle: { min: 280, max: 320 },
+            scale: { start: 0.5, end: 0 },
+            blendMode: 'SCREEN',
+            //active: false,
+            lifespan: 600,
+            gravityY: 800
+        });
+        FX1.explode();
+        FX2 = this.add.particles('FX2').createEmitter({
+            x: 485,
+            y: 250,
+            speed: { min: 300, max: 600 },
+            angle: { min: 255, max: 295 },
+            scale: { start: 0.5, end: 0 },
+            rotate: {start: 0, end: 180 },
+            blendMode: 'SCREEN',
+            gravityY: 1800,
+            //active: false,
+            lifespan: 600,
+            gravityY: 800
+        });
+        FX2.explode();
+        FX3 = this.add.particles('FX3').createEmitter({
+            x: 600,
+            y: 250,
+            speed: { min: 400, max: 600 },
+            angle: { min: 260, max: 280 },
+            scale: { start: 0.5, end: 0 },
+            rotate: {start: 0, end: 180 },
+            blendMode: 'SCREEN',
+            //active: false,
+            lifespan: 600,
+            gravityY: 800
+        });
+        FX3.explode();
+        FX4 = this.add.particles('FX4').createEmitter({
+            x: 700,
+            y: 250,
+            speed: { min: 400, max: 600 },
+            angle: { min: 260, max: 280 },
+            scale: { start: 0.5, end: 0 },
+            blendMode: 'SCREEN',
+            //active: false,
+            lifespan: 600,
+            gravityY: 800
+        });
+        FX4.explode();
+        FX5 = this.add.particles('FX5').createEmitter({
+            x: 780,
+            y: 250,
+            speed: { min: 400, max: 600 },
+            angle: { min: 200, max: 240 },
+            scale: { start: 0.5, end: 0 },
+            rotate: {start: 0, end: 180 },
+            blendMode: 'SCREEN',
+            //active: false,
+            lifespan: 600,
+            gravityY: 800
+        });
+        FX5.explode();
+
+        FXs = [FX1,FX2,FX3,FX4,FX5];
     }
     
     update ()
@@ -321,10 +402,19 @@ class scene1 extends Phaser.Scene{
         
         if (tete.angle >0){tete.angle--;}
 
-        if (timer > 100){
-        vitesse_rotation_disque = Math.min(5,vitesse_rotation_disque+0.01);
-        disque.angle += vitesse_rotation_disque;
+        if (timer > 100 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0))
+        {
+            vitesse_rotation_disque = Math.min(6.28,vitesse_rotation_disque+0.01);
+            disque.angle += vitesse_rotation_disque;
         }
+
+        if (tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)
+        {
+            vitesse_rotation_disque = Math.max(0,vitesse_rotation_disque-0.03);
+            disque.angle += vitesse_rotation_disque;
+        }
+
+
 
         timer++;
 
@@ -389,6 +479,11 @@ class scene1 extends Phaser.Scene{
                         score_sans_multi++;
                         score += multiplicateur * 50;
                         game.sound.volume = 1;
+                        console.log('tab_notes_sortie[0][1]',tab_notes_sortie[0][1]);
+                        (FXs[tab_notes_sortie[0][1]]).explode();
+                        (FXs[tab_notes_sortie[0][1]]).explode();
+                        (FXs[tab_notes_sortie[0][1]]).explode();
+                        (FXs[tab_notes_sortie[0][1]]).explode();
                     }
                     else
                     {
@@ -405,7 +500,7 @@ class scene1 extends Phaser.Scene{
             }
             else
             {
-                //indic_note.scaleX *= 1.03;
+                indic_note.scaleX *= 1.02;
                 indic_note.scaleY *= 1.08;
                 indic_note.alpha *= 0.96;
                 if (indic_note.alpha < 0.3){indic_note.destroy();}
@@ -726,9 +821,18 @@ function draw_baton(x,y,alpha)
 {
     let x0 = getX0(x,y);
     let y0 = getY0(x,y);
+
+    let x1 = x + 0.45*(x0-x);
+    let y1 = y + 0.45*(y0-y);
+    let radius0b = radius0 + 0.55 * (radius2 - radius0);
+    let x2 = x + 0.2*(x0-x);
+    let y2 = y + 0.2*(y0-y);
+    let radius0c = radius0 + 0.85 * (radius2 - radius0);
     
-    let distAB = Math.pow(Math.pow(x0-x,2)+Math.pow(y0-y,2),1/2);
-    
+    let distAB = Math.pow(Math.pow(x0-x1,2)+Math.pow(y0-y1,2),1/2);
+    let distBC = Math.pow(Math.pow(x1-x2,2)+Math.pow(y1-y2,2),1/2);
+    let distCD = Math.pow(Math.pow(x2-x,2)+Math.pow(y2-y,2),1/2);
+
     //Affichage de l'extremite eloignee
     graphics.fillStyle(0xFFFCF8, alpha);
     graphics.fillCircle(x0,y0,radius0).setDepth(5);
@@ -736,13 +840,31 @@ function draw_baton(x,y,alpha)
     //Affichage de la baguette
     let poly = new Phaser.Geom.Polygon();
 
-    poly.setTo([ new Phaser.Geom.Point(x-radius2*(y0-y)/distAB, y+radius2*(x0-x)/distAB), new Phaser.Geom.Point(x0-radius0*(y0-y)/distAB, y0+radius0*(x0-x)/distAB), new Phaser.Geom.Point(x0+radius0*(y0-y)/distAB, y0-radius0*(x0-x)/distAB), new Phaser.Geom.Point(x+radius2*(y0-y)/distAB, y-radius2*(x0-x)/distAB) ]);
+    poly.setTo([ new Phaser.Geom.Point(x1-radius0b*(y0-y1)/distAB, y1+radius0b*(x0-x1)/distAB), new Phaser.Geom.Point(x0-radius0*(y0-y1)/distAB, y0+radius0*(x0-x1)/distAB), new Phaser.Geom.Point(x0+radius0*(y0-y1)/distAB, y0-radius0*(x0-x1)/distAB), new Phaser.Geom.Point(x1+radius0b*(y0-y1)/distAB, y1-radius0b*(x0-x1)/distAB) ]);
     graphics.fillStyle(0xFFFCF8, alpha);
     graphics.fillPoints(poly.points, true).setDepth(5);
     
+    graphics.fillStyle(0x1D1D1B, alpha);
+    graphics.fillCircle(x1,y1,radius0b).setDepth(5);
+
+    let poly1 = new Phaser.Geom.Polygon();
+
+    poly1.setTo([ new Phaser.Geom.Point(x2-radius0c*(y1-y2)/distBC, y2+radius0c*(x1-x2)/distBC), new Phaser.Geom.Point(x1-radius0b*(y1-y2)/distBC, y1+radius0b*(x1-x2)/distBC), new Phaser.Geom.Point(x1+radius0b*(y1-y2)/distBC, y1-radius0b*(x1-x2)/distBC), new Phaser.Geom.Point(x2+radius0c*(y1-y2)/distBC, y2-radius0c*(x1-x2)/distBC) ]);
+    graphics.fillStyle(0x1D1D1B, alpha);
+    graphics.fillPoints(poly1.points, true).setDepth(5);
+
+    graphics.fillStyle(0xFFFCF8, alpha);
+    graphics.fillCircle(x2,y2,radius0c).setDepth(5);
+
+    let poly2 = new Phaser.Geom.Polygon();
+
+    poly2.setTo([ new Phaser.Geom.Point(x-radius2*(y2-y)/distCD, y+radius2*(x2-x)/distCD), new Phaser.Geom.Point(x2-radius0c*(y2-y)/distCD, y2+radius0c*(x2-x)/distCD), new Phaser.Geom.Point(x2+radius0c*(y2-y)/distCD, y2-radius0c*(x2-x)/distCD), new Phaser.Geom.Point(x+radius2*(y2-y)/distCD, y-radius2*(x2-x)/distCD) ]);
+    graphics.fillStyle(0xFFFCF8, alpha);
+    graphics.fillPoints(poly2.points, true).setDepth(5);
+
     //Affichage de l'extremite proche 1
     graphics.fillStyle(0x1D1D1B, alpha);
-    graphics.fillCircle(x,y,radius2).setDepth(5);
+    graphics.fillCircle(x,y,radius2+2).setDepth(5);
 
     //Affichage de l'extremite proche 2
     graphics.fillStyle(0xFFFCF8, alpha);
