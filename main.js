@@ -40,6 +40,7 @@ var cursors;
 var move;
 
 //var bg;
+var bg0;
 var bg1;
 var bg2;
 var bg3;
@@ -50,14 +51,13 @@ var brics;
 var murVertical;
 var murVertical1;
 
-var bloc_down_allowed = true;
-var bloc_up_allowed = true;
-var bloc_present = false;
+var bloc_down_allowed;
+var bloc_up_allowed;
+var bloc_present;
 
 var boost_height = 225;
 
 var bloc_rebond;
-var cd_bloc_rebond = 0;
 
 var golds;
 
@@ -74,10 +74,10 @@ var debugText0;
 var debugText2;
 var debugText3;
 
-var score_sans_multi = 0;
-var score = 0;
-var multiplicateur = 1;
-var streak = 0;
+var score_sans_multi;
+var score;
+var multiplicateur;
+var streak;
 
 var text = "";
 var text0 = "";
@@ -130,10 +130,10 @@ var comboText;
 var sizeFontCombo = 51;
 
 var bouton_gauche;
-var aller_gauche = false;
+var aller_gauche;
 var bouton_droit;
-var aller_droite = false;
-var mode_click = false;
+var aller_droite;
+var mode_click;
 
 var silhouettes_noir;
 var silhouettes_couleur;
@@ -146,12 +146,12 @@ var disque;
 var bois;
 var tete;
 
-var cd_erreur = 0;
+var cd_erreur;
 
-var vitesse_rotation_disque = 0;
-var debut_morceau = true;
-var milieu_morceau = true;
-var fin_morceau = true;
+var vitesse_rotation_disque;
+var debut_morceau;
+var milieu_morceau;
+var fin_morceau;
 
 var couleurs = [0xEA6400,0x0080FF,0xFFCE00,0xFF0019,0x00E7FF];
 var emitter0;
@@ -182,6 +182,7 @@ class main extends Phaser.Scene{
         // ******** IMAGES ********
         this.load.image('bloc', 'assets/images/note_strillee.png');
         //this.load.image('bg', 'assets/images/fond_sombre.png');
+        this.load.image('bg0', 'assets/images/fond_sombre0.png');
         this.load.image('bg1', 'assets/images/fond_sombre1.png');
         this.load.image('bg2', 'assets/images/fond_sombre2.png');
         this.load.image('bg3', 'assets/images/fond_sombre3.png');
@@ -235,6 +236,24 @@ class main extends Phaser.Scene{
         quart_section = 0;
         tonalite = 1;
         dernier_rebond = 1;
+        bloc_down_allowed = true;
+        bloc_up_allowed = true;
+        bloc_present = false;
+        vitesse_rotation_disque = 0;
+        aller_gauche = false;
+        bouton_droit;
+        aller_droite = false;
+        mode_click = false;
+        
+        debut_morceau = true;
+        milieu_morceau = true;
+        fin_morceau = true;
+        cd_erreur = 0;
+
+        score_sans_multi = 0;
+        score = 0;
+        multiplicateur = 1;
+        streak = 0;
 
         graphics = this.add.graphics();
         
@@ -243,6 +262,7 @@ class main extends Phaser.Scene{
         //bg = this.add.sprite(config.width/2+400, config.height/2, 'bg');
         //bg.setDepth(-1);
 
+        bg0 = this.add.sprite(config.width/2+150, config.height/2, 'bg0').setDepth(-0.5).setScale(1.1);
         bg1 = this.add.sprite(config.width/2, config.height/2, 'bg1').setDepth(-1).setScale(1.1);
         bg2 = this.add.sprite(config.width/2, config.height/2, 'bg2').setDepth(-2).setScale(1.07);
         bg3 = this.add.sprite(config.width/2, config.height/2, 'bg3').setDepth(-3).setScale(1.03);
@@ -296,7 +316,7 @@ class main extends Phaser.Scene{
             fill: '#ffffff'
         }).setDepth(10).setInteractive().setAngle(10);
         
-        comboText = this.add.text(92, 272,streak, {
+        comboText = this.add.text(92, 272,multiplicateur, {
             fontFamily: 'Limelight',
             fontSize: sizeFontCombo+'px',
             padding: { x: 10, y: 5 },
@@ -308,8 +328,11 @@ class main extends Phaser.Scene{
         }, this);
         
         //tab_notes_entree = [[4,0,0],[5,3,4],[6,1,7],[7,2,4],[8,3,0],[9,3,0],[12,3,7],[12.25,3,7],[12.5,3,7],[12.75,3,0]];
-        tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,4,7],[8.25,4,7],[8.5,4,7],[8.75,4,7],[9,3,7],[9.25,3,7],[9.5,3,7],[9.75,3,7],[10,4,7],[11,4,7],[12,1,9],[13,0,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,2,4],[26,2,4],[27,2,4],[28,2,4],[29,3,2],[30,2,4],[31,3,2],[32,0,0],[33,1,4],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
+        //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,4,7],[8.25,4,7],[8.5,4,7],[8.75,4,7],[9,3,7],[9.25,3,7],[9.5,3,7],[9.75,3,7],[10,4,7],[11,4,7],[12,1,9],[13,0,5],[14,3,12],[15,2,9],[16,1,7],[17,1,7],[18,1,7],[19,1,7],[20,1,7],[21,0,5],[22,0,5],[23,0,5],[24,0,5],[25,2,4],[26,2,4],[27,2,4],[28,2,4],[29,3,2],[30,2,4],[31,3,2],[32,0,0],[33,1,4],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
         //tab_notes_entree = [[4,0,0],[5,1,2],[6,2,4],[7,3,5],[8,2,7],[8.5,2,6],[9,2,7],[9.5,2,6],[10,2,7]];
+        
+        tab_notes_entree = [[6,1,4],[7,1,7],[8,0,4],[9,0,0],[10,1,2],[11,1,2],[12,0,0],[13,1,-3],[14,3,-8],[15,3,-8],[16,3,-5],[17,3,-8],[18,3,-5],[19,3,-4],[20,3,-3],[21,3,-1],[22,1,4],[23,1,7],[24,0,4],[25,0,0],[26,1,9],[27,1,9],[28,0,7],[29,1,8],[30,2,8],[30.25,2,8],[30.5,2,7],[30.75,2,5],[31,2,8],[31.25,2,8],[31.5,2,5],[31.75,2,7],[32,3,8],[32.25,3,8],[32.5,3,7],[32.75,3,5],[33,3,8],[33.25,3,8],[33.5,3,5],[33.75,3,7],[34,4,7],[36,4,7],[37,3,5],[38,3,5],[39,3,5],[40,3,5],[41,2,4],[42,2,4],[43,2,4],[44,2,4],[45,1,2],[46,2,4],[47,1,2],[48,0,0]];
+
         tab_notes_sortie = [];
         
         nombre_notes_total = tab_notes_entree.length;
@@ -342,6 +365,8 @@ class main extends Phaser.Scene{
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         });
+
+        comboText.setText(multiplicateur);
 
         bouton_gauche = this.add.sprite(336, 224, 'bouton_gauche').setInteractive().setAlpha(0.00001);
         bouton_droit = this.add.sprite(784, 224, 'bouton_droit').setInteractive().setAlpha(0.00001);
@@ -470,13 +495,9 @@ class main extends Phaser.Scene{
         }
         else if (vitesse_rotation_disque < 4.2 && !debut_morceau && fin_morceau)
         {
-            game.sound.setVolume(1);
-            game.sound.setRate(1.5);
-            crowd.play();
-            disque_fin.play();
-            fin_morceau=false;
-            setTimeout(()=>{game.scene.start("menu");game.scene.stop("main")},4000);
+            
         }
+        
         //else if (milieu_morceau && timer%600==0 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)){disque_milieu.play();}
 
         // Gestion de la rotation du disque
@@ -491,6 +512,12 @@ class main extends Phaser.Scene{
         {
             vitesse_rotation_disque = Math.max(0,vitesse_rotation_disque-0.03);
             disque.angle += vitesse_rotation_disque;
+            if(fin_morceau){
+                fin_morceau=false;
+                //disque_fin.play();
+                setTimeout(()=>{game.sound.setVolume(1);game.sound.setRate(1.5);crowd.play();},1500);
+                setTimeout(()=>{game.scene.start("menu");game.scene.stop("main")},6000);
+            }
         }
 
         // Mouvement des spectateurs en fonction de la valeur du combo
@@ -499,8 +526,8 @@ class main extends Phaser.Scene{
 
         if(timer%5==0)
         {
-            bg1.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
-            bg1.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+            bg1.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur);
+            bg1.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur*2);
         }
 
         bg2.x+=(config.width/2+170-bg2.x)*0.4;
@@ -508,8 +535,8 @@ class main extends Phaser.Scene{
 
         if(timer%6==0)
         {
-            bg2.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
-            bg2.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+            bg2.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur);
+            bg2.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur*2);
         }
 
         bg3.x+=(config.width/2+170-bg3.x)*0.4;
@@ -517,8 +544,8 @@ class main extends Phaser.Scene{
 
         if(timer%7==0)
         {
-            bg3.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
-            bg3.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+            bg3.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur);
+            bg3.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur*2);
         }
 
         bg4.x+=(config.width/2+170-bg4.x)*0.4;
@@ -526,8 +553,8 @@ class main extends Phaser.Scene{
 
         if(timer%8==0)
         {
-            bg4.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
-            bg4.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+            bg4.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur);
+            bg4.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*multiplicateur*2);
         }
 
         cd_erreur = Math.max(0,cd_erreur-1);
@@ -693,18 +720,6 @@ class main extends Phaser.Scene{
             }
         }
         
-        if (cd_bloc_rebond == 0 && bloc_present)
-        {
-            //bloc_rebond.destroy();
-            boost_height = 225;
-            player.setBounce(0.845);
-            bloc_present = false;
-        }
-        else
-        {
-            cd_bloc_rebond--;
-        }
-        
         if (!cursors.up.isDown){bloc_down_allowed = true;}
         if (!cursors.down.isDown){bloc_up_allowed = true;}
 
@@ -729,16 +744,7 @@ class main extends Phaser.Scene{
                 }
             }
             bloc_up_allowed = false;
-            //bloc_down_allowed = false;
-            //bloc_present = true;
-            //bloc_rebond = murs.create(player.x, player.y - 80, 'bloc');
-            //boost_height = player.y;
-            //cd_bloc_rebond = 180;
-            //player.setBounce(1);
-            //player.setVelocityY(-player.body.velocity.y);
-        }
-        
-        
+        }    
         
         if (cursors.up.isDown && bloc_up_allowed && !mode_click)
         {
