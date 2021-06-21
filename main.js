@@ -252,7 +252,7 @@ class main extends Phaser.Scene{
         trompette = this.sound.add("trompette");
 
         disque_debut = this.sound.add("disque_debut");
-        disque_milieu = this.sound.add("disque_milieu",{ loop: true });
+        //disque_milieu = this.sound.add("disque_milieu",{ loop: true });
         disque_fin = this.sound.add("disque_fin");
         
         WebFont.load({
@@ -456,15 +456,14 @@ class main extends Phaser.Scene{
         }
 
         // Mouvement des spectateurs en fonction de la valeur du combo
-        if (bg.x<config.width/2){bg.x+=10;}
-        else if (bg.x>config.width/2){bg.x-=10;}
-        if (bg.y<config.height/2){bg.y+=20;}
-        else if (bg.y>config.height/2){bg.y-=20;}
+        bg.x+=(config.width/2-bg.x)*0.4;
+        bg.y+=(config.height/2-bg.y)*0.4;
 
-        
-            bg.x += Math.floor(Math.random(streak+1)-streak/2);
-            bg.y += Math.floor(Math.random(2*streak+1)-streak);
-        
+        if(timer%7==0)
+        {
+            bg.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
+            bg.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+        }
 
         cd_erreur = Math.max(0,cd_erreur-1);
 
@@ -474,10 +473,10 @@ class main extends Phaser.Scene{
         if(timer2==tab_tempo[0]||timer2==tab_tempo[1]||timer2==tab_tempo[2]||timer2==tab_tempo[3]){dernier_rebond = tab_division[quart_section];ymax_type3_can_change=true;}
 
         // Chaque temps est décomposé en 4 sous-temps, on note dans lequel on se trouve
-        if(timer2==tab_tempo[0]){quart_section=0;console.log(quart_section);}
-        else if(timer2==tab_tempo[1]){quart_section=1;console.log(quart_section);}
-        else if(timer2==tab_tempo[2]){quart_section=2;console.log(quart_section);}
-        else if(timer2==tab_tempo[3]){quart_section=3;console.log(quart_section);}
+        if(timer2==tab_tempo[0]){quart_section=0;}
+        else if(timer2==tab_tempo[1]){quart_section=1;}
+        else if(timer2==tab_tempo[2]){quart_section=2;}
+        else if(timer2==tab_tempo[3]){quart_section=3;}
 
         // Les données du temps précédent sont décalés au nouveau temps
         if (timer2 == 0)
@@ -532,7 +531,7 @@ class main extends Phaser.Scene{
                         score_sans_multi++;
                         score += multiplicateur * 50;
                         game.sound.volume = 1;
-                        console.log('tab_notes_sortie[0][1]',tab_notes_sortie[0][1]);
+                        //console.log('tab_notes_sortie[0][1]',tab_notes_sortie[0][1]);
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         (FXs[tab_notes_sortie[0][1]]).explode();
                         (FXs[tab_notes_sortie[0][1]]).explode();
@@ -824,14 +823,14 @@ function calcul_hauteur(type,t,t0)
 {
     let ymax;
     let delta;
-    console.log("type=",type);
+    //console.log("type=",type);
     // le type 2 correspond à un rebond de petite taille à un tempo 4 fois plus rapide que celui de base
     if(type==2)
     {
         ymax = y_mid;
         if (quart_section==3){delta = tempo - tab_tempo[quart_section];}
         else {delta = tab_tempo[quart_section+1] - tab_tempo[quart_section];}
-        console.log("delta",delta);
+        //console.log("delta",delta);
         return 4*(y_sol-ymax)*(t-t0)*(((t-t0)/delta-1)/delta)+y_sol;
     }
     //calcul_hauteur(timer2/tab_division[0][0],0,tempo/tab_division[0][0],tab_division[0][1]);
@@ -913,8 +912,8 @@ function calcul_hauteur(type,t,t0)
         }
         if (pos_plus_proche_type23==-1){t0=0;delta=tempo;}
         else {t0=tab_tempo[pos_plus_proche_type23+1];delta=2*(tempo-tab_tempo[pos_plus_proche_type23+1]);}
-        console.log("delta",delta);
-        console.log("pos_plus_proche_type23",pos_plus_proche_type23);
+        //console.log("delta",delta);
+        //console.log("pos_plus_proche_type23",pos_plus_proche_type23);
         return 4*(y_sol-ymax)*(t+delta/2-t0)*(((t+delta/2-t0)/delta-1)/delta)+y_sol;
     }
 }
