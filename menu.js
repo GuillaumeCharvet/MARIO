@@ -7,27 +7,27 @@ var tete;
 var UI_titre;
 var UI_titre_texte;
 var depth_titre = 8;
-var titre_scale = false;
+var titre_scale;
 
 var UI_jouer;
 var UI_jouer_texte;
 var depth_jouer = 7;
-var jouer_scale = false;
+var jouer_scale;
 
 var UI_reglages;
 var UI_reglages_texte;
 var depth_reglages = 6;
-var reglages_scale = false;
+var reglages_scale;
 
 var UI_controles;
 var UI_controles_texte;
 var depth_controles = 4;
-var controles_scale = false;
+var controles_scale;
 
 var UI_quitter;
 var UI_quitter_texte;
 var depth_quitter = 5;
-var quitter_scale = false;
+var quitter_scale;
 
 var UI_retour1;
 var UI_retour1_texte;
@@ -36,9 +36,9 @@ var UI_retour2;
 var UI_retour2_texte;
 var depth_retour2 = 9;
 
-var stop_menu = false;
-var retour_menu1 = false;
-var retour_menu2 = false;
+var stop_menu;
+var retour_menu1;
+var retour_menu2;
 
 var controles;
 var reglages;
@@ -85,7 +85,17 @@ class menu extends Phaser.Scene{
     }
     
     create ()
-    {        
+    {
+        titre_scale = false;
+        jouer_scale = false;
+        reglages_scale = false;
+        controles_scale = false;
+        quitter_scale = false;
+
+        stop_menu = false;
+        retour_menu1 = false;
+        retour_menu2 = false;
+
         //bg = this.add.sprite(config.width/2, config.height/2, 'bg');
         //bg = this.add.tileSprite(config.height/2+448, 224, 896, 448, 'bg');
         //bg.setDepth(-1);
