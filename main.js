@@ -38,7 +38,13 @@ var endText;
 var style = { font: "40px Arial", fill: "#52bace", align: "center" , backgroundColor: "#395B75"};
 var cursors;
 var move;
-var bg;
+
+//var bg;
+var bg1;
+var bg2;
+var bg3;
+var bg4;
+
 var murs;
 var brics;
 var murVertical;
@@ -81,9 +87,9 @@ var text2 = "";
 var tab_notes_entree;
 var tab_notes_sortie;
 var tab_notes_effet;
-var timer = 0;
+var timer;
 
-var tonalite = 1;
+var tonalite;
 var tempo = 36;
 
 var indic_notes;
@@ -97,14 +103,14 @@ var y_top;
 var ymax_type3;
 var ymax_type3_can_change = true;
 
-var timer2 =0;
+var timer2;
 var division = 1;
 //var tab_division = [[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0],[1,y_top0]];
-var tab_division = [1,1,1,1,1,1,1,1];
+var tab_division;
 //var tab_tempo = [[0*tempo/4,1*tempo/4-1],[1*tempo/4,2*tempo/4-1],[2*tempo/4,3*tempo/4-1],[3*tempo/4,4*tempo/4-1]];
 var tab_tempo = [Math.floor(0*tempo/4),Math.floor(1*tempo/4),Math.floor(2*tempo/4),Math.floor(3*tempo/4)];
-var quart_section = 0;
-var dernier_rebond = 1;
+var quart_section;
+var dernier_rebond;
 
 var vY_indic_notes = 1;
 
@@ -160,6 +166,8 @@ var disque_debut;
 var disque_milieu;
 var disque_fin;
 
+var crowd;
+
 class main extends Phaser.Scene{
     
     constructor ()
@@ -170,9 +178,14 @@ class main extends Phaser.Scene{
     
     preload ()
     {   
+
         // ******** IMAGES ********
         this.load.image('bloc', 'assets/images/note_strillee.png');
-        this.load.image('bg', 'assets/images/fond_sombre.png');
+        //this.load.image('bg', 'assets/images/fond_sombre.png');
+        this.load.image('bg1', 'assets/images/fond_sombre1.png');
+        this.load.image('bg2', 'assets/images/fond_sombre2.png');
+        this.load.image('bg3', 'assets/images/fond_sombre3.png');
+        this.load.image('bg4', 'assets/images/fond_sombre4.png');
         
         this.load.image('bouton_gauche', 'assets/images/bouton_gauche.png');
         this.load.image('bouton_droit', 'assets/images/bouton_droit.png');
@@ -207,20 +220,33 @@ class main extends Phaser.Scene{
         this.load.audio('disque_debut', 'assets/audio/disque_debut.wav');
         this.load.audio('disque_milieu', 'assets/audio/disque_milieuDB3.mp3');
         this.load.audio('disque_fin', 'assets/audio/disque_fin.wav');
+        
+        this.load.audio('crowd', 'assets/audio/crowd.wav');
 
         // ******** FONT ********
         this.load.script('webfont', 'https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js');
     }
     
     create ()
-    {     
+    {    
+        timer = 0;
+        timer2 = 0;
+        tab_division = [1,1,1,1,1,1,1,1];
+        quart_section = 0;
+        tonalite = 1;
+        dernier_rebond = 1;
+
         graphics = this.add.graphics();
         
         this.physics.world.setBounds(config.height/2, 0, config.width-config.height/2, config.height);
         
-        bg = this.add.sprite(config.width/2, config.height/2, 'bg');
-        //bg = this.add.tileSprite(config.height/2+448, 224, 896, 448, 'bg');
-        bg.setDepth(-1);
+        //bg = this.add.sprite(config.width/2+400, config.height/2, 'bg');
+        //bg.setDepth(-1);
+
+        bg1 = this.add.sprite(config.width/2, config.height/2, 'bg1').setDepth(-1).setScale(1.1);
+        bg2 = this.add.sprite(config.width/2, config.height/2, 'bg2').setDepth(-2).setScale(1.07);
+        bg3 = this.add.sprite(config.width/2, config.height/2, 'bg3').setDepth(-3).setScale(1.03);
+        bg4 = this.add.sprite(config.width/2, config.height/2, 'bg4').setDepth(-4).setScale(1.0);
 
         // largeur d'une colonne -> on soustrait une demie hauteur à la largeur totale puis on divide par le nombre de colonnes
         largeur_note = (config.width-config.height/2)/5;
@@ -254,6 +280,8 @@ class main extends Phaser.Scene{
         disque_debut = this.sound.add("disque_debut");
         //disque_milieu = this.sound.add("disque_milieu",{ loop: true });
         disque_fin = this.sound.add("disque_fin");
+
+        crowd = this.sound.add("crowd");
         
         WebFont.load({
             google: {
@@ -314,8 +342,6 @@ class main extends Phaser.Scene{
             padding: { x: 10, y: 5 },
             fill: '#ffffff'
         });
-
-        
 
         bouton_gauche = this.add.sprite(336, 224, 'bouton_gauche').setInteractive().setAlpha(0.00001);
         bouton_droit = this.add.sprite(784, 224, 'bouton_droit').setInteractive().setAlpha(0.00001);
@@ -437,15 +463,27 @@ class main extends Phaser.Scene{
         else if (tete.angle <0 ){tete.angle++;}
         if(cd_erreur){tete.angle += Math.floor(Math.random()*11-5);}
 
-        if (vitesse_rotation_disque == 0 && debut_morceau){disque_debut.play(); setTimeout(()=>{debut_morceau=false;},5000)}
-        else if (vitesse_rotation_disque < 6.2 && !debut_morceau && fin_morceau){disque_fin.play(); fin_morceau=false;}
+        if (vitesse_rotation_disque == 0 && debut_morceau)
+        {
+            disque_debut.play();
+            setTimeout(()=>{debut_morceau=false;},10000);
+        }
+        else if (vitesse_rotation_disque < 4.2 && !debut_morceau && fin_morceau)
+        {
+            game.sound.setVolume(1);
+            game.sound.setRate(1.5);
+            crowd.play();
+            disque_fin.play();
+            fin_morceau=false;
+            setTimeout(()=>{game.scene.start("menu");game.scene.stop("main")},4000);
+        }
         //else if (milieu_morceau && timer%600==0 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0)){disque_milieu.play();}
 
         // Gestion de la rotation du disque
         // -> Acceleration du disque au debut puis vitesse constante
         if (timer > 100 && !(tab_notes_entree.length == 0 && tab_notes_sortie.length == 0))
         {
-            vitesse_rotation_disque = Math.min(6.28,vitesse_rotation_disque+0.01);
+            vitesse_rotation_disque = Math.min(6.28,vitesse_rotation_disque+0.1);
             disque.angle += vitesse_rotation_disque;
         }
         // -> Deceleration du disque a la fin
@@ -456,13 +494,40 @@ class main extends Phaser.Scene{
         }
 
         // Mouvement des spectateurs en fonction de la valeur du combo
-        bg.x+=(config.width/2-bg.x)*0.4;
-        bg.y+=(config.height/2-bg.y)*0.4;
+        bg1.x+=(config.width/2+170-bg1.x)*0.4;
+        bg1.y+=(config.height/2+5-bg1.y)*0.4;
+
+        if(timer%5==0)
+        {
+            bg1.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
+            bg1.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+        }
+
+        bg2.x+=(config.width/2+170-bg2.x)*0.4;
+        bg2.y+=(config.height/2-5-bg2.y)*0.4;
+
+        if(timer%6==0)
+        {
+            bg2.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
+            bg2.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+        }
+
+        bg3.x+=(config.width/2+170-bg3.x)*0.4;
+        bg3.y+=(config.height/2-10-bg3.y)*0.4;
 
         if(timer%7==0)
         {
-            bg.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
-            bg.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+            bg3.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
+            bg3.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
+        }
+
+        bg4.x+=(config.width/2+170-bg4.x)*0.4;
+        bg4.y+=(config.height/2-15-bg4.y)*0.4;
+
+        if(timer%8==0)
+        {
+            bg4.x += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak/2);
+            bg4.y += Math.floor(Math.random()*3-1)*Math.floor(Math.random()*streak);
         }
 
         cd_erreur = Math.max(0,cd_erreur-1);
@@ -765,12 +830,6 @@ class main extends Phaser.Scene{
             //player.setVelocityY(0);
         }
         
-        /*if (player.x >= 1280 -50){
-            y_init = player.y;
-            start = false;
-            this.scene.start("scene2");
-        }*/
-        
         vX0 = vX1;
         vX1 = player.body.velocity.x;
         vY0 = vY1;
@@ -778,24 +837,7 @@ class main extends Phaser.Scene{
 
         y_top = tab_division[0][1];
 
-
         player.y = calcul_hauteur(tab_division[quart_section],timer2,tab_tempo[quart_section]);
-        
-        /*if (tab_division[0][0]==4)
-        {
-            console.log(player.y);
-        }*/
-
-        /*
-        if (player.y < 225)
-        {
-            player.setVelocityY(1100);
-        }
-        
-        if (player.y > 550)
-        {
-            player.setVelocityY(-3100);
-        }*/
         
         graphics.clear();
         
@@ -815,6 +857,9 @@ class main extends Phaser.Scene{
         // Mise a jour affichage score et combo
         scoreText.setText(score);
         comboText.setText('X' + multiplicateur);
+
+        if (cursors.restart.isDown)
+        {this.scene.restart();}
     }
 
 }
@@ -978,7 +1023,7 @@ function draw_baton(x,y,alpha)
 
 function getX0(x,y)
 {
-    return decalage*x/276+448*(1-decalage/276);
+    return 120+decalage*x/276+448*(1-decalage/276);
 }
 
 function getY0(x,y)
