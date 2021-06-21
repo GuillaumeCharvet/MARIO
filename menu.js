@@ -144,10 +144,14 @@ class menu extends Phaser.Scene{
         });
 
         UI_jouer.on('pointerdown', function (pointer) {
+            if(!stop_menu){UI_jouer.setDepth(9);
+            UI_jouer_texte.setDepth(9.1);}
             if(!stop_menu){jouer_scale = true;stop_menu=true;}
         });
 
         UI_jouer_texte.on('pointerdown', function (pointer) {
+            if(!stop_menu){UI_jouer.setDepth(9);
+            UI_jouer_texte.setDepth(9.1);}
             if(!stop_menu){jouer_scale = true;stop_menu=true;}
         });
         // REGLAGES
@@ -189,11 +193,13 @@ class menu extends Phaser.Scene{
             UI_controles_texte.setDepth(depth_controles);}
         });
 
-        UI_controles.on('pointerdown', function (pointer) {
+        UI_controles.on('pointerdown', function (pointer) {UI_controles.setDepth(9);
+            UI_controles_texte.setDepth(9.1);
             if(!stop_menu){controles_scale = true;stop_menu=true;}
         });
 
-        UI_controles_texte.on('pointerdown', function (pointer) {
+        UI_controles_texte.on('pointerdown', function (pointer) {UI_controles.setDepth(9);
+            UI_controles_texte.setDepth(9.1);
             if(!stop_menu){controles_scale = true;stop_menu=true;}
         });
         // QUITTER
@@ -213,10 +219,14 @@ class menu extends Phaser.Scene{
         });
 
         UI_quitter.on('pointerdown', function (pointer) {
+            if(!stop_menu){UI_quitter.setDepth(9);
+                UI_quitter_texte.setDepth(9.1);}
             if(!stop_menu){quitter_scale = true;stop_menu=true;}
         });
 
         UI_quitter_texte.on('pointerdown', function (pointer) {
+            if(!stop_menu){UI_quitter.setDepth(9);
+            UI_quitter_texte.setDepth(9.1);}
             if(!stop_menu){quitter_scale = true;stop_menu=true;}
         });
         // RETOUR
@@ -244,11 +254,13 @@ class menu extends Phaser.Scene{
         });
 
         UI_retour2.on('pointerdown', function (pointer) {
-            if(true){UI_retour2.setVisible(false);UI_retour2_texte.setVisible(false);controles.setVisible(false);retour_menu2 = true;stop_menu=false;}
+            if(true){UI_quitter.setDepth(depth_quitter);
+                UI_quitter_texte.setDepth(depth_quitter);UI_retour2.setVisible(false);UI_retour2_texte.setVisible(false);controles.setVisible(false);retour_menu2 = true;stop_menu=false;}
         });
 
         UI_retour2_texte.on('pointerdown', function (pointer) {
-            if(true){UI_retour2.setVisible(false);UI_retour2_texte.setVisible(false);controles.setVisible(false);retour_menu2 = true;stop_menu=false;}
+            if(true){UI_quitter.setDepth(depth_quitter);
+                UI_quitter_texte.setDepth(depth_quitter);UI_retour2.setVisible(false);UI_retour2_texte.setVisible(false);controles.setVisible(false);retour_menu2 = true;stop_menu=false;}
         });
 
         /*curseur.on('pointerdown', function (pointer) {
